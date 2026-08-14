@@ -1,0 +1,12 @@
+pid,flag_exclude_participant,missing_pct_both,missing_pct_label,threshold_used,any_left_early,n_reasons,reason_list
+204,TRUE,0.1111,11%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+211,TRUE,0.225,22%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+196,TRUE,0.0857,9%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+186,TRUE,0.2333,23%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+175,TRUE,0.02,2%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+128,TRUE,0,0%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+123,TRUE,0.1143,11%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+169,TRUE,0,0%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+155,TRUE,0.1556,16%,50%,TRUE,1,Attempted 0 < required 5 (50% of planned minimum 9) in phase 'q&a' across ALL engagement types
+194,TRUE,1,100%,50%,TRUE,2,Attempted 5 < required 6 (50% of planned minimum 12) in phase 'intro_play' across ALL engagement types; Combined missingness (intro_play + q&a) 100% > 50% across ALL engagement types
+148,TRUE,0.5385,54%,50%,FALSE,1,Combined missingness (intro_play + q&a) 54% > 50% across ALL engagement types

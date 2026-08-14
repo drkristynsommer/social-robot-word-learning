@@ -1,0 +1,2515 @@
+---
+title: "Novel Word Learning from Social Robots by Autistic and Non-Autistic Children"
+subtitle: "Data cleaning and analysis walkthrough"
+author: "Dr Kristyn Sommer | Little Scientist Lab, Griffith University"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    theme: cosmo
+    highlight: kate
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+    number_sections: false
+    code_folding: "hide"
+    fig_retina: 2
+    self_contained: true
+  word_document:
+    toc: true
+  pdf_document:
+    toc: true
+---
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700&display=swap');
+
+:root {
+  --mmi-deep-blue: #2462AC; --mmi-sky-blue: #2D90C6; --mmi-aqua: #5AAED2;
+  --mmi-yellow: #FAC226; --mmi-yellow-acc: #FDB91D; --mmi-orange: #F69E28;
+  --mmi-orange-burnt: #DE6123; --mmi-charcoal: #474849;
+  --mmi-mid-grey: #888888; --mmi-light-grey: #F5F6F7; --mmi-white: #FFFFFF;
+}
+
+html { font-size: 15px; }
+body {
+  font-family: 'Inter', 'Source Sans Pro', 'Helvetica Neue', sans-serif;
+  font-size: 1rem; line-height: 1.65;
+  color: var(--mmi-charcoal); background: var(--mmi-white);
+}
+h1, h2, h3, h4, h5 {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: 1rem; color: var(--mmi-deep-blue); line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+h1 { font-weight: 800; margin-bottom: 0.25rem; }
+h2 { font-weight: 800; border-bottom: 3px solid var(--mmi-yellow-acc);
+     padding-bottom: 5px; margin-top: 2.2rem; }
+h3 { font-weight: 700; color: var(--mmi-sky-blue); margin-top: 1.6rem; }
+h4 { font-weight: 600; font-style: italic; color: var(--mmi-charcoal); }
+.title { color: var(--mmi-deep-blue) !important; }
+.subtitle { color: var(--mmi-mid-grey); font-style: italic; }
+.author { font-weight: 600; }
+.date { color: var(--mmi-mid-grey); }
+
+code, pre { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 1rem; }
+
+#TOC.tocify {
+  border: 1px solid #e7e9ec; border-radius: 8px; background: var(--mmi-white);
+  padding: 10px 4px 12px 4px; font-size: 1rem;
+  box-shadow: 0 2px 10px rgba(36,98,172,0.05); max-height: 84vh; overflow-y: auto;
+}
+#TOC.tocify::before {
+  content: "On this page"; display: block; font-weight: 700;
+  color: var(--mmi-deep-blue); padding: 2px 12px 8px 14px;
+  margin-bottom: 4px; border-bottom: 1px solid #eef0f2;
+}
+#TOC .list-group-item {
+  border: none; margin: 1px 0; padding: 5px 12px 5px 14px; background: transparent;
+  border-radius: 0 6px 6px 0; border-left: 3px solid transparent;
+  line-height: 1.35; color: var(--mmi-charcoal);
+}
+#TOC a, #TOC .list-group-item a { color: inherit; text-decoration: none; display: block; }
+#TOC .tocify-header > .tocify-item { font-weight: 600; color: var(--mmi-deep-blue); }
+#TOC .tocify-subheader > .tocify-item { padding-left: 26px; color: var(--mmi-mid-grey); }
+#TOC .list-group-item:hover { background: #f2f6fb; color: var(--mmi-deep-blue); }
+#TOC .list-group-item.active {
+  background: #eaf1fa; color: var(--mmi-deep-blue);
+  border-left: 3px solid var(--mmi-yellow-acc); font-weight: 700;
+}
+
+/* Tables: APA 7, rules only, no shading or striping. */
+table { border-collapse: collapse; font-size: 1rem; margin: 0.4rem 0 1.2rem 0; }
+thead th {
+  background: transparent !important; color: #000 !important; font-weight: 400;
+  border-top: 1px solid #000; border-bottom: 1px solid #000;
+  padding: 6px 14px 6px 0; text-align: left;
+}
+tbody td { border: none; padding: 5px 14px 5px 0; }
+tbody tr:last-child td { border-bottom: 1px solid #000; }
+tbody tr:hover td { background: transparent; }
+.table-striped tbody tr:nth-of-type(odd) td,
+.table-striped tbody tr:nth-of-type(odd) th { background: transparent !important; }
+.table-hover tbody tr:hover td { background: transparent !important; }
+caption { color: var(--mmi-charcoal); font-style: italic; text-align: left;
+          padding: 4px 0; caption-side: top; }
+
+blockquote {
+  border-left: 3px solid var(--mmi-yellow-acc); background: var(--mmi-light-grey);
+  padding: 10px 16px; margin: 1.1rem 0; color: var(--mmi-charcoal); font-size: 1rem;
+}
+.caption, p.caption { font-style: italic; color: var(--mmi-mid-grey); font-size: 1rem; }
+</style>
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, results = "asis",
+                      comment = "")
+```
+
+# Preamble
+
+## Setup
+
+```{r libraries, echo = TRUE}
+# Exact package versions are recorded in Section 12 (Session Info) and in
+# computational_environment.md in the deposit root.
+library(tidyverse); library(janitor); library(readxl)
+library(psych); library(lme4); library(lmerTest)
+library(zoo); library(scales); library(BayesFactor)
+library(kableExtra); library(irr); library(ggdist); library(ggbeeswarm)
+library(here)
+
+# Reusable table helper — APA 7 style (rules only, no shading or striping)
+fmt_table <- function(df, caption = NULL, digits = 3) {
+  df %>%
+    knitr::kable(digits = digits, caption = caption) %>%
+    kableExtra::kable_styling(
+      bootstrap_options = "condensed",
+      full_width = FALSE, position = "left"
+    )
+}
+
+# Helper: label a kappa/ICC value using Cicchetti (1994) benchmarks
+kappa_label <- function(k) {
+  if (is.na(k)) return("unavailable")
+  if (k >= .75) "excellent" else if (k >= .60) "good" else if (k >= .40) "moderate" else "poor"
+}
+
+# Helper: APA-format p-values (show "< .001" instead of "0" for tiny values)
+fmt_p <- function(p) {
+  ifelse(is.na(p), "NA",
+         ifelse(p < .001, "< .001", formatC(round(p, 3), format = "f", digits = 3)))
+}
+
+theme_pub <- theme_minimal(base_size = 13) +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = "bottom",
+        plot.title = element_text(face = "bold", size = 13),
+        plot.subtitle = element_text(size = 10, colour = "grey40"))
+
+pal <- c("Autistic" = "#E07B54", "Non-autistic" = "#5B8DB8")
+```
+
+```{r data_provenance, echo = TRUE}
+# ── DATA PROVENANCE ───────────────────────────────────────────────────────────
+fmt_table(data.frame(
+  Item  = c("Data files", "Rendered", "R version", "Platform"),
+  Value = c("Clean_MainAnalysis_Data.csv | test_trials_long.csv | analysis_interval_long.csv",
+            format(Sys.time(), "%d %B %Y, %H:%M %Z"),
+            R.version$version.string,
+            R.version$platform),
+  check.names = FALSE
+), caption = "Data provenance")
+```
+
+## Open Materials and Data
+
+> **Pre-registration:** This study was pre-registered prior to data collection on the Open Science Framework (OSF): [https://osf.io/hg859/](https://osf.io/hg859/)
+
+> **Data files** used in this script:
+>
+> | File | Contents |
+> |---|---|
+> | `Clean_MainAnalysis_Data.csv` | Per-child demographic, clinical, and summary variables |
+> | `test_trials_long.csv` | Trial-level word learning responses (long format) |
+> | `analysis_interval_long.csv` | Interval-level engagement scores (long format) |
+>
+> **Reproducibility:** R version and exact package versions are recorded in Section 12 (Session Info) and in `computational_environment.md` in the deposit root. The word-learning and engagement analyses (Sections 5–10) reproduce from the released de-identified datasets in `data/deidentified/` (participant IDs in the release are re-coded public IDs; `analysis_main_deidentified.csv` is the released counterpart of the main analysis file, with age banded and clinical scores banded). Two parts require the secure source files, which are not released: the interrater-reliability computation (Section 3.4, raw coding workbooks) and the covariate screening on exact age and clinical scores (Section 7.1.5).
+>
+> **File integrity:** MD5 checksums for the released datasets are recorded in `data/checksums.md` in the deposit.
+
+## Variable Codebook
+
+| Variable | Type | Values / Range | Description |
+|---|---|---|---|
+| `pid` | integer | unique | Participant identifier |
+| `Condition` | integer | 0 = Autistic; 1 = Non-autistic | Diagnostic group |
+| `group` | character | "Autistic"; "Non-autistic" | Group label (derived from Condition) [derived] |
+| `Age` | numeric | months | Age at testing |
+| `Gender` | integer | 1 = Male; 2 = Female | Participant gender |
+| `ADOS_comparison_score` | numeric | 1–10 | ADOS-2 comparison score (Autistic only) |
+| `Vine_ABC` | numeric | standard score | Vineland-3 Adaptive Behaviour Composite (Autistic only) |
+| `DQ_Verbal` | numeric | score | Verbal developmental quotient (Autistic only) |
+| `DQ_NonVerbal` | numeric | score | Non-verbal developmental quotient (Autistic only) |
+| `correct` | integer | 0 = incorrect; 1 = correct | Word learning trial accuracy |
+| `test_item` | character | e.g. "pok_1" | Trial identifier (word × instance) |
+| `word_type` | factor | POK, LIF, NEEM, WUG | Novel word label [derived] |
+| `phase` | character | "intro_play"; "q&a"; "goodbye" | Session phase |
+| `interval_num` | integer | 1–N | Within-phase interval number (10 s intervals) |
+| `engagement_type` | character | Proximity, Touch, Communication, Eye, Emotion | Engagement channel |
+| `score` | numeric | 1–5 (channels); −2 to +2 (Emotion) | Interval-level engagement rating |
+| `Proximity` | numeric | 1–5 | Mean Proximity score (wide format) |
+| `Touch` | numeric | 1–5; NA if Touch Prohibited | Mean Touch score; NA after touch-instruction cutpoint |
+| `Communication` | numeric | 1–5 | Mean Communication score (capped at 5) |
+| `Eye` | numeric | 1–5 | Mean Eye Contact score (capped at 5) |
+| `Emotion` | numeric | −2 to +2 | Mean Emotional Valence score |
+| `session_idx` | integer | 1–N | Row index within child session (intro_play then q&a) [derived] |
+| `story_engagement` | numeric | 0–1 | Proportion of story duration with visual attention to iPad [derived] |
+| `z_*` | numeric | standardised | Z-scored predictor (mean = 0, SD = 1) [derived] |
+
+## Research Questions and Hypotheses
+
+**RQ1 (Secondary — Autistic group only)**
+Do Autistic children learn novel words from the social robot above the 50% chance level?
+
+- *Pre-registered:* Autistic children's word learning accuracy will exceed chance (one-sample test against 50%; GLMM intercept-only model).
+- *Exploratory:* Covariate-adjusted model (controlling for Age, ADOS comparison score, Verbal DQ if they pass pre-analysis screening).
+
+**RQ2 (Primary — pre-registered)**
+Do Autistic and Non-autistic children differ in word learning accuracy?
+
+- *Pre-registered:* Non-autistic children will demonstrate significantly higher word learning accuracy than Autistic children (GLMM with group as fixed effect; Non-autistic as reference).
+
+**RQ3 (Secondary — Autistic group only)**
+Does engagement with the social robot predict word learning accuracy in Autistic children?
+
+- *Pre-registered:* Higher overall engagement will predict greater word learning accuracy.
+- *Exploratory:* Channel-level effects (Proximity, Touch, Communication, Eye Contact, Emotion analysed as independent subscales given non-equivalent factor structures); story engagement as secondary predictor (Autistic females only due to data availability).
+
+**RQ4 (Primary — pre-registered)**
+Do Autistic and Non-autistic children differ in engagement with the social robot?
+
+- *Pre-registered:* Non-autistic children will demonstrate significantly higher overall engagement.
+- *Exploratory:* Channel-level group differences; Bayesian sensitivity analyses for non-significant channels; Group × Engagement interaction models.
+
+## Pre-Registration Deviation Log
+
+| # | Section | Deviation | Type | Rationale |
+|---|---|---|---|---|
+| 1 | RQ3 | Engagement channels analysed as independent subscales rather than a single composite score | Protocol-driven | Factor analysis revealed non-equivalent structures in Autistic vs Non-autistic groups; composite scores would conflate structurally distinct constructs |
+| 2 | RQ1 | Covariate-adjusted model run only if covariates pass pre-analysis Pearson screening (*p* < .05) | Pre-specified | Prevents overfitting in small Autistic subsample; screening criterion documented prior to model fitting |
+| 3 | RQ3 | Story engagement model restricted to Autistic females only | Protocol-driven | Coding file for Autistic males uses different layout; story columns unavailable for male participants |
+| 4 | RQ3/RQ4 | Touch analysis restricted to Touch-valid subset (n = 66 / n = 31 Autistic) | Protocol-driven | 21 children were instructed not to touch; global session cutpoint applied to all channels at touch-instruction interval |
+| 5 | General | Goodbye phase excluded from all engagement analyses | Pre-specified | Substantially higher missingness and structural difference from learning-relevant phases (Intro Play, Q&A) |
+| 6 | Bayesian | Full posterior inference (brms/Stan) not obtained; BayesFactor sensitivity analyses reported instead | Protocol-driven | macOS SDK incompatibility with rstan/brms at time of analysis |
+
+---
+
+# Reporting Standards & Software
+
+Analyses were conducted in accordance with the APA Journal Article Reporting Standards for Quantitative Research (JARS-Quant; Appelbaum et al., 2018). All statistical tests are two-tailed with α = .05. Effect sizes are reported alongside significance tests: Cohen's *d* for between-group continuous comparisons, and log-odds (*b*) with 95% CIs for GLMMs. Mixed model coefficients (*b*) represent the estimated change in the outcome per one-unit (or one-SD for *z*-scored predictors) increase in the predictor, holding other terms constant and accounting for the random-intercept clustering structure. No formal correction for multiple comparisons was applied across research questions; individual α levels are reported per test. Bayesian sensitivity analyses (Section 9) complement frequentist results for primary null findings.
+
+Software: analyses were run in `r R.version$version.string` using the following key packages: **lme4** / **lmerTest** (linear mixed models), **lme4** (generalised linear mixed models via `glmer`), **psych** (factor analysis), **BayesFactor** (Bayesian *t*-tests and correlations), **irr** (intraclass correlation), **tidyverse** (data wrangling), **ggplot2** / **ggdist** / **ggbeeswarm** (visualisation), **kableExtra** (tables). Full session information is reported in Section 12.
+
+---
+
+# 1. Data Loading
+
+```{r load-data, echo = TRUE}
+main    <- read_csv(here("Clean_MainAnalysis_Data.csv"), show_col_types = FALSE)
+trials  <- read_csv(here("test_trials_long.csv"),        show_col_types = FALSE)
+d_int   <- read_csv(here("analysis_interval_long.csv"),  show_col_types = FALSE)
+
+# ── Public participant-ID re-coding ──────────────────────────────────────────
+# On the authors' machine a secure mapping file re-codes every original PID to
+# an unlinkable public ID, so all rendered output reports public IDs only.
+# The mapping is never deposited. Publicly released datasets already carry the
+# public IDs, so when the mapping file is absent (i.e., for anyone reproducing
+# from the released data) no re-coding is needed or applied.
+if (file.exists(here("pid_recode_map_SECURE.csv"))) {
+  .pid_map <- read_csv(here("pid_recode_map_SECURE.csv"), show_col_types = FALSE)
+  .remap <- function(df, col = "pid") {
+    # Idempotent: original and public ID ranges are disjoint, so IDs that are
+    # already public (e.g., in CSVs this notebook regenerates) pass through.
+    if (!col %in% names(df)) return(df)
+    vals    <- df[[col]]
+    already <- vals %in% .pid_map$public_pid
+    new     <- .pid_map$public_pid[match(vals, .pid_map$pid)]
+    new[already] <- vals[already]
+    if (any(is.na(new) & !is.na(vals)))
+      stop("Unmapped participant ID — rebuild pid_recode_map_SECURE.csv")
+    df[[col]] <- new
+    df
+  }
+  main <- .remap(main, "PID"); trials <- .remap(trials); d_int <- .remap(d_int)
+} else {
+  .remap <- function(df, col = "pid") df
+}
+
+fmt_table(data.frame(
+  Dataset = c("Main dataset", "Trial data", "Interval data"),
+  Rows = c(nrow(main), nrow(trials), nrow(d_int)),
+  Columns = c(ncol(main), ncol(trials), ncol(d_int))
+), caption = "Loaded datasets")
+```
+
+---
+
+# 2. Participant Flow
+
+Participant flow is shown as two tracks that share the same enrolled sample: the
+**engagement track** (RQ4, RQ3) and the **word learning track** (RQ1, RQ2).
+
+```{r consort-helpers, include = FALSE}
+# ── Reusable mini-CONSORT helper ──────────────────────────────────────────────
+# Draws a compact vertical participant-flow diagram for a single RQ.
+#
+# steps: a list of named lists, each with:
+#   type = "in"  → blue included box (main flow, top → bottom)
+#           "ex"  → red excluded box  (side branch from the nearest flow box above)
+#           "an"  → green analysis box (sits in the main flow like "in")
+#   label = text to display (use \n for line breaks)
+# text_size: geom_text size for box labels (bump for larger standalone figures)
+#
+# Example:
+#   rq_consort(list(
+#     list(type = "in", label = "Enrolled\nn = 97"),
+#     list(type = "ex", label = "Excluded: n = 10\nMissing data"),
+#     list(type = "an", label = "Analysis sample\nn = 87")
+#   ), title = "RQ4 Sample")
+
+rq_consort <- function(steps, title = "", text_size = 2.85) {
+  # Recode user-facing type values: "in" → "main", "ex" → "excl", "an" → "analysis"
+  steps <- lapply(steps, function(s) {
+    s$type <- switch(s$type, "in" = "main", "ex" = "excl", "an" = "analysis", s$type)
+    s
+  })
+
+  flow_types <- c("main", "analysis")   # box types that sit in the vertical flow
+  main_idx  <- which(vapply(steps, function(s) s$type, "") %in% flow_types)
+  n_main    <- length(main_idx)
+  y_main    <- rev(seq_len(n_main)) * 3.0   # top-to-bottom y positions
+
+  # ── Build box data frame ──────────────────────────────────────────────────
+  main_rank <- 0L
+  rows      <- lapply(seq_along(steps), function(i) {
+    s <- steps[[i]]
+    if (s$type %in% flow_types) {
+      main_rank <<- main_rank + 1L
+      y <- y_main[main_rank]
+      data.frame(step = i, type = s$type, cx = 0, y = y,
+                 xmin = -3.8, xmax = 3.8, ymin = y-0.75, ymax = y+0.75,
+                 label = s$label, stringsAsFactors = FALSE)
+    } else {
+      # attach to the nearest flow box above in the list; box height adapts to
+      # the number of label lines, growing downward so it never collides with
+      # the flow box above
+      prev_main <- max(main_idx[main_idx < i])
+      prev_rnk  <- which(main_idx == prev_main)
+      n_lines   <- length(strsplit(s$label, "\n", fixed = TRUE)[[1]])
+      h         <- min(1.75, max(1.3, 0.42 * n_lines + 0.30))
+      ytop      <- y_main[prev_rnk] - 0.5
+      data.frame(step = i, type = "excl", cx = 6.5, y = ytop - h/2,
+                 xmin = 4.2, xmax = 8.8, ymin = ytop - h, ymax = ytop,
+                 label = s$label, stringsAsFactors = FALSE)
+    }
+  })
+  box_df <- bind_rows(rows)
+
+  # ── Arrows between consecutive flow boxes ─────────────────────────────────
+  main_b <- box_df %>% filter(type %in% flow_types) %>% arrange(desc(y))
+  arr_m  <- if (nrow(main_b) > 1) data.frame(
+    x = 0, y = head(main_b$ymin, -1),
+    xend = 0, yend = tail(main_b$ymax, -1)) else NULL
+
+  # ── Dashed connectors from "main" right edge → "excl" left edge ──────────
+  excl_b <- box_df %>% filter(type=="excl")
+  arr_e  <- if (nrow(excl_b) > 0) {
+    bind_rows(lapply(seq_len(nrow(excl_b)), function(i) {
+      above <- main_b %>% filter(y > excl_b$y[i]) %>% slice_min(y, n = 1)
+      data.frame(x = 3.8, y = above$y - 0.15, xend = 4.2, yend = excl_b$ymax[i] - 0.15)
+    }))
+  } else NULL
+
+  # ── Render ────────────────────────────────────────────────────────────────
+  fill_p <- c(main = "#DDEEFF", excl = "#FFE8E8", analysis = "#E8F5E9")
+  col_p  <- c(main = "#336699", excl = "#CC3333", analysis = "#2E7D32")
+  ylims  <- range(c(box_df$ymin, box_df$ymax))
+
+  p <- ggplot() +
+    geom_rect(data = box_df,
+              aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
+                  fill = type, colour = type),
+              linewidth = 0.55, alpha = 0.92) +
+    geom_text(data = box_df,
+              aes(x = cx, y = y, label = label),
+              size = text_size, lineheight = 1.3, hjust = 0.5, vjust = 0.5, colour = "grey10") +
+    scale_fill_manual(values = fill_p, guide = "none") +
+    scale_colour_manual(values = col_p, guide = "none")
+
+  if (!is.null(arr_m))
+    p <- p + geom_segment(data = arr_m, aes(x = x,y = y,xend = xend,yend = yend),
+                          arrow = arrow(length = unit(0.15,"cm"),type = "closed"),
+                          colour = "grey40", linewidth = 0.5)
+  if (!is.null(arr_e))
+    p <- p + geom_segment(data = arr_e, aes(x = x,y = y,xend = xend,yend = yend),
+                          arrow = arrow(length = unit(0.12,"cm"),type = "open"),
+                          colour = "#CC3333", linewidth = 0.45, linetype = "dashed")
+
+  p + coord_cartesian(xlim = c(-5, 9.5), ylim = c(ylims[1]-0.4, ylims[2]+0.5)) +
+    labs(title = title) +
+    theme_void(base_size = 11) +
+    theme(plot.title = element_text(face = "bold", size = 11, hjust = 0,
+                                  margin = margin(b = 5)))
+}
+```
+
+```{r consort-flow-engagement, echo = TRUE, fig.width = 8.5, fig.height = 8}
+rq_consort(list(
+  list(type = "in", label = "Enrolled\nn = 97  (Autistic = 59, Non-autistic = 38)"),
+  list(type = "ex", label = "Excluded (engagement): n = 10\nAll/most data missing"),
+  list(type = "in", label = "Engagement sample\nn = 87  (Autistic = 51, Non-autistic = 36)"),
+  list(type = "ex", label = "Excluded from Touch: n = 21\nInstructed not to touch\nAutistic = 20, Non-autistic = 1"),
+  list(type = "in", label = "Touch-valid subset\nn = 66  (Autistic = 31, Non-autistic = 35)"),
+  list(type = "an", label = "RQ4: Engagement group comparisons\nAll channels: n = 87   |   Touch channel: n = 66"),
+  list(type = "an", label = "RQ3: Engagement → word learning (Autistic only)\n4-subscale: n = 30   |   5-subscale (+ Touch): n = 20")
+), title = "Figure 1a. Participant Flow: Engagement Track (RQ4 and RQ3)",
+   text_size = 3.4)
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig2_consort_a.png", last_plot(), width = 8.5, height = 8, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig2_consort_a.pdf", last_plot(), width = 8.5, height = 8, bg = "white"), silent = TRUE)
+```
+
+```{r consort-flow-wordlearning, echo = TRUE, fig.width = 8.5, fig.height = 6.6}
+# NOTE: n = 22 (RQ1 covariate-adjusted) is hardcoded here. Must stay in sync with
+# .rq1_n_cov computed in the consort-rq1 chunk (Section 7.2). Update if data changes.
+rq_consort(list(
+  list(type = "in", label = "Enrolled\nn = 97  (Autistic = 59, Non-autistic = 38)"),
+  list(type = "ex", label = "Excluded (word learning): n = 28\nAutistic only\n(< 4 trials completed)"),
+  list(type = "in", label = "Word learning sample\nn = 69  (Autistic = 31, Non-autistic = 38)"),
+  list(type = "an", label = "RQ2: Group difference in word learning: n = 69\nRQ1 (unadjusted): n = 31 Autistic"),
+  list(type = "ex", label = "Excluded (RQ1 adj.): n = 9\nMissing Age, ADOS,\nor Verbal DQ"),
+  list(type = "an", label = "RQ1: Autistic above chance (covariate-adjusted)\nn = 22 Autistic  [complete Age, ADOS, Verbal DQ]")
+), title = "Figure 1b. Participant Flow: Word Learning Track (RQ1 and RQ2)",
+   text_size = 3.4)
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig2_consort_b.png", last_plot(), width = 8.5, height = 6.6, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig2_consort_b.pdf", last_plot(), width = 8.5, height = 6.6, bg = "white"), silent = TRUE)
+```
+
+*Blue = included samples; red = excluded; green = analysis samples. RQ1 adj. = covariate-adjusted model (Age, ADOS comparison score, Verbal DQ). RQ3: the 4-subscale model excludes the Touch channel; the 5-subscale model requires the Touch-valid subset.*
+
+---
+
+# 3. Study Design and Reporting Standards
+
+## 3.1 Unit of Delivery and Treatment Fidelity
+
+Robot interactions were delivered individually (one child per session). All robot actions were controlled via Choregraphe (Suite 2.1) programming, ensuring a standardised script including fixed story duration (~1 min 24 s), identical experimenter-delivered feedback phrases, and contingent robot responses triggered by voice recognition. Formal treatment fidelity was not assessed using session checklists or independent adherence logs; the standardised scripted protocol serves as the primary fidelity mechanism. The absence of formal fidelity checks is acknowledged as a limitation.
+
+## 3.2 Adverse Events
+
+No adverse events were reported during or following any robot interaction session.
+
+## 3.3 Analytic Strategy
+
+The analytic strategy was organised into three levels:
+
+**Primary analyses**
+
+- *RQ2:* Whether ASD and NT children differed in novel word learning accuracy (pre-registered primary hypothesis)
+- *RQ4:* Whether engagement during robot interaction differed between ASD and NT children
+
+**Secondary analyses**
+
+- *RQ1:* Whether ASD children's word learning accuracy exceeded chance (provides context for interpreting group differences)
+- *RQ3:* Whether engagement during robot interaction predicted word learning in ASD children
+
+**Exploratory analyses**
+
+- Group × Engagement interaction models (whether the relationship between engagement and word learning differed between groups)
+- Factor structure of engagement measures by group (preliminary; informs independent-subscale approach)
+
+> **Pre-registration:** This study was pre-registered prior to data collection on OSF: [https://osf.io/hg859/](https://osf.io/hg859/)
+
+## 3.4 Interrater Reliability
+
+A subset of 11 ASD sessions (18.6% of recruited ASD participants [11/59]; 21.6% of the engagement analysis sample [11/51]) were coded by a second independent rater. Interrater reliability was assessed using the intraclass correlation coefficient [ICC(3,1): two-way mixed effects model, absolute agreement, single rater] computed using the `irr` package in R. Percentage exact agreement is reported as a secondary index. Interval-level scores coded as 99 (Touch Prohibited) were excluded prior to ICC computation.
+
+ICC values were in the moderate-to-good range for Touch and Eye Contact, and moderate for Emotion, Proximity, and Communication. The lower n for Touch (175 intervals vs ~340–349 for other measures) reflects exclusion of Touch Prohibited intervals. No independent second-rater NT data were available for reliability estimation; this is acknowledged as a limitation.
+
+```{r irr-table, results = "markup", echo = TRUE}
+# ── ASD IRR (hardcoded from manual computation) ───────────────────────────────
+irr_tab_asd <- data.frame(
+  Measure = c("Proximity", "Touch", "Communication", "Eye Contact", "Emotion"),
+  `ICC(3,1)` = c(0.483, 0.778, 0.444, 0.620, 0.483),
+  `95% CI` = c("[0.398, 0.559]", "[0.711, 0.830]", "[0.356, 0.525]",
+                            "[0.549, 0.682]", "[0.397, 0.561]"),
+  `% Exact Agreement` = c("60.7%", "72.6%", "52.0%", "46.4%", "74.4%"),
+  `n intervals` = c(349, 175, 348, 330, 340),
+  Interpretation = c("Moderate", "Good", "Moderate", "Moderate-good", "Moderate"),
+  check.names = FALSE
+)
+
+# ── NT IRR: primary coding (Coders 1–2) ──────────────────────────────────────
+# Clean_RAW_NT_Engagement.xlsx: one row per PID × engagement_type × phase.
+# Interval scores are in columns named x1, x2, … x26 (after clean_names).
+# PIDs here are bare integers; they match the secondary coder's zero-padded
+# "P###" codes by stripping the "P0*" prefix.
+nt_irr_primary <- read_excel(here("R Formatted/Clean_RAW_NT_Engagement.xlsx")) %>%
+  clean_names() %>%
+  filter(tolower(phase) %in% c("intro_play", "qa")) %>%
+  pivot_longer(
+    cols = matches("^x\\d+$"),
+    names_to = "interval",
+    values_to = "score_primary"
+  ) %>%
+  filter(!is.na(score_primary), score_primary != 99) %>%
+  mutate(
+    phase_std = tolower(phase),
+    interval_seq = as.integer(sub("^x", "", interval))
+  ) %>%
+  rename(pid_int = pid, channel = engagement_type) %>%
+  select(pid_int, channel, phase_std, interval_seq, score_primary)
+nt_irr_primary <- .remap(nt_irr_primary, "pid_int")
+
+# ── NT IRR: secondary coding (Coder 3) ───────────────────────────────────────
+# NT_Engagement_SecondaryCoder_raw.xlsx: custom Excel layout, one participant block per
+# ~12 rows. Each block starts with a row where col 1 = "PXXX".
+# Within each block the row offsets for each channel"s data are fixed:"
+#   EE data        → offset +1  (Intro_Play cols 1–30, QA cols 31–36)
+#   Proximity data → offset +4
+#   Touch data     → offset +6
+#   Communication  → offset +8
+#   Eye data       → offset +10
+# Engagement columns occupy Excel cols 16–51 (36 intervals total):
+#   positions 1–30 = Intro_Play phase (timestamps 0:10–5:00)
+#   positions 31–36 = QA phase        (timestamps 11:10–12:00)
+sec_coder_xl <- suppressMessages(
+  read_excel(here("R Formatted/NT_Engagement_SecondaryCoder_raw.xlsx"),
+             col_names = FALSE, .name_repair = "minimal")
+)
+
+pid_col1 <- as.character(sec_coder_xl[[1]])
+pid_rows  <- which(grepl("^P\\d{3}$", pid_col1))
+
+ch_offsets <- data.frame(
+  channel = c("Emotion", "Proximity", "Touch", "Communication", "Eye"),
+  offset = c(1,          4,           6,        8,              10),
+  stringsAsFactors = FALSE
+)
+
+interval_cols <- 16:51  # cols 16–51 = 36 interval slots
+
+sec_coder_long <- bind_rows(lapply(pid_rows, function(r) {
+  pid_int <- as.integer(sub("^P0*", "", pid_col1[r]))
+  tryCatch(
+    bind_rows(lapply(seq_len(nrow(ch_offsets)), function(i) {
+      dr   <- r + ch_offsets$offset[i]
+      if (dr > nrow(sec_coder_xl)) return(NULL)
+      vals <- suppressWarnings(
+        as.numeric(as.character(unlist(sec_coder_xl[dr, interval_cols])))
+      )
+      data.frame(
+        pid_int = pid_int,
+        channel = ch_offsets$channel[i],
+        phase_std = c(rep("intro_play", 30), rep("qa", 6)),
+        interval_seq = seq_along(vals),
+        score_secondary = vals,
+        stringsAsFactors = FALSE
+      )
+    })),
+    error = function(e) NULL
+  )
+})) %>%
+  filter(!is.na(score_secondary))
+sec_coder_long <- .remap(sec_coder_long, "pid_int")
+
+# ── Match primary × secondary on PID × channel × phase × interval position ───
+nt_matched <- sec_coder_long %>%
+  inner_join(nt_irr_primary, by = c("pid_int", "channel", "phase_std", "interval_seq"))
+
+# Coding coverage summary (replaces the printed diagnostics)
+fmt_table(data.frame(
+  `Coding set` = c("Primary coders (Coders 1-2)",
+                   "Secondary coder (Coder 3)",
+                   "Matched primary-secondary pairs"),
+  `N children` = c(n_distinct(nt_irr_primary$pid_int),
+                   n_distinct(sec_coder_long$pid_int),
+                   n_distinct(nt_matched$pid_int)),
+  `N interval-level rows` = c(nrow(nt_irr_primary),
+                              nrow(sec_coder_long),
+                              nrow(nt_matched)),
+  check.names = FALSE
+), caption = "NT IRR: coding coverage")
+
+if (nrow(nt_matched) > 0) {
+  fmt_table(nt_matched %>%
+       group_by(channel) %>%
+       summarise(`N PIDs` = n_distinct(pid_int), `N intervals` = n(), .groups = "drop"),
+     caption = "NT IRR: matched interval pairs per channel (primary Coders 1-2 vs secondary Coder 3)")
+}
+
+# ── ICC(3,1) per channel ──────────────────────────────────────────────────────
+display_names <- c(
+  Emotion = "Emotion", Proximity = "Proximity", Touch = "Touch",
+  Communication = "Communication", Eye = "Eye Contact"
+)
+
+nt_icc_tab <- bind_rows(lapply(names(display_names), function(ch) {
+  disp <- display_names[[ch]]
+  dat  <- nt_matched %>% filter(channel == ch)
+
+  if (nrow(dat) < 10) {
+    return(data.frame(
+      Measure = disp, `ICC(3,1)` = NA_real_,
+      `95% CI` = "n/a", `n intervals` = nrow(dat), Interpretation = "n/a",
+      check.names = FALSE
+    ))
+  }
+
+  icc_res <- irr::icc(dat[, c("score_primary", "score_secondary")],
+                      model = "twoway", type = "agreement", unit = "single")
+  data.frame(
+    Measure = disp,
+    `ICC(3,1)` = round(icc_res$value, 3),
+    `95% CI` = sprintf("[%.3f, %.3f]", icc_res$lbound, icc_res$ubound),
+    `n intervals` = nrow(dat),
+    Interpretation = ifelse(icc_res$value >= 0.75, "Good",
+                     ifelse(icc_res$value >= 0.60, "Moderate-good", "Moderate")),
+    check.names = FALSE
+  )
+}))
+
+# ── Print tables ──────────────────────────────────────────────────────────────
+fmt_table(irr_tab_asd,
+   caption = "ASD subsample IRR (n = 11 participants, 18.6%). ICC(3,1): two-way mixed effects, absolute agreement, single rater.")
+
+fmt_table(nt_icc_tab,
+   caption = sprintf("NT subsample IRR (n = %d matched participants, secondary Coder 3 vs primary coders). ICC(3,1): two-way mixed effects, absolute agreement, single rater.",
+                     n_distinct(nt_matched$pid_int)))
+
+# ── Combined side-by-side ─────────────────────────────────────────────────────
+irr_combined <- irr_tab_asd %>%
+  select(Measure, `ICC(3,1)`, `95% CI`, `n intervals`, Interpretation) %>%
+  rename(`ASD ICC(3,1)` = `ICC(3,1)`, `ASD 95% CI` = `95% CI`,
+         `ASD n` = `n intervals`, `ASD Interp.` = Interpretation) %>%
+  left_join(
+    nt_icc_tab %>%
+      select(Measure, `ICC(3,1)`, `95% CI`, `n intervals`, Interpretation) %>%
+      rename(`NT ICC(3,1)` = `ICC(3,1)`, `NT 95% CI` = `95% CI`,
+             `NT n` = `n intervals`, `NT Interp.` = Interpretation),
+    by = "Measure"
+  )
+
+fmt_table(irr_combined,
+   caption = "Combined IRR by group and channel. ICC(3,1): two-way mixed effects, absolute agreement, single rater.")
+```
+
+```{r fig5-icc-dotplot, fig.width = 7, fig.height = 4, echo = TRUE}
+icc_plot_dat <- data.frame(
+  Channel = c("Proximity","Communication","Eye Contact","Emotion","Touch"),
+  ICC = c(0.483, 0.444, 0.620, 0.483, 0.778),
+  CI_low = c(0.398, 0.356, 0.549, 0.397, 0.711),
+  CI_high = c(0.559, 0.525, 0.682, 0.561, 0.830)
+) %>%
+  mutate(Channel = fct_reorder(Channel, ICC))
+
+ggplot(icc_plot_dat, aes(x = ICC, y = Channel)) +
+  geom_vline(xintercept = 0.70, linetype = "dashed", colour = "grey50", linewidth = 0.6) +
+  geom_errorbarh(aes(xmin = CI_low, xmax = CI_high), height = 0.2, linewidth = 0.7) +
+  geom_point(size = 3.5, colour = "#E07B54") +
+  annotate("text", x = 0.71, y = 0.6, label = "ICC = .70", size = 3, colour = "grey50", hjust = 0) +
+  scale_x_continuous(limits = c(0.3, 0.9)) +
+  labs(title = "Channel-Level Interrater Reliability (ASD Subsample)",
+       x = "ICC(3,1) with 95% CI", y = NULL) +
+  theme_pub
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/supp_s1_icc.png", last_plot(), width = 7, height = 4, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/supp_s1_icc.pdf", last_plot(), width = 7, height = 4, bg = "white"), silent = TRUE)
+```
+
+## 3.5 Participant Characteristics
+
+```{r demographics-table, echo = TRUE}
+main_dem <- .remap(read_csv(here("Clean_MainAnalysis_Data.csv"), show_col_types = FALSE), "PID") %>%
+  mutate(group = ifelse(Condition==0, "ASD", "NT"),
+         Gender = ifelse(Gender==1, "Male", "Female")) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"))
+
+# Table 1 cells — n-missing rendered inline in caption footnote (full enrolled sample)
+dem_tab <- main_dem %>%
+  group_by(group) %>%
+  summarise(
+    `n` = n(),
+    `Age (months): M (SD)` = sprintf("%.1f (%.1f)", mean(Age,na.rm = TRUE), sd(Age,na.rm = TRUE)),
+    `Age range` = sprintf("%d–%d", floor(min(Age,na.rm = TRUE)), ceiling(max(Age,na.rm = TRUE))),
+    `Gender: % male` = sprintf("%.0f%%", mean(Gender=="Male",na.rm = TRUE)*100),
+    `ADOS-2 comp. score: M (SD)` = ifelse(all(is.na(ADOS_comparison_score)), "—",
+                                 sprintf("%.1f (%.1f)", mean(ADOS_comparison_score,na.rm = TRUE),
+                                         sd(ADOS_comparison_score,na.rm = TRUE))),
+    `MSEL Verbal DQ: M (SD)` = ifelse(all(is.na(DQ_Verbal)), "—",
+                                sprintf("%.1f (%.1f)", mean(DQ_Verbal,na.rm = TRUE), sd(DQ_Verbal,na.rm = TRUE))),
+    `MSEL Non-verbal DQ: M (SD)` = ifelse(all(is.na(DQ_NonVerbal)), "—",
+                                sprintf("%.1f (%.1f)", mean(DQ_NonVerbal,na.rm = TRUE),
+                                        sd(DQ_NonVerbal,na.rm = TRUE))),
+    `Vineland-3 ABC: M (SD)` = ifelse(all(is.na(Vine_ABC)), "—",
+                                sprintf("%.1f (%.1f)", mean(Vine_ABC,na.rm = TRUE), sd(Vine_ABC,na.rm = TRUE))),
+    .groups = "drop"
+  ) %>%
+  t() %>%
+  as.data.frame() %>%
+  rownames_to_column("Characteristic")
+
+colnames(dem_tab)[2:3] <- c("Autistic", "Non-autistic")
+dem_tab <- dem_tab[-1, ]   # remove "group" row
+
+# Group comparison on age
+age_t <- t.test(main_dem$Age[main_dem$group=="Autistic"], main_dem$Age[main_dem$group=="Non-autistic"])
+dem_tab <- dem_tab %>%
+  add_row(Characteristic = "Age group comparison",
+          Autistic = sprintf("t(%.1f) = %.2f", age_t$parameter, age_t$statistic),
+          `Non-autistic` = sprintf("p = %.3f", age_t$p.value))
+
+# Build the n-missing footnote string from the full sample
+miss_asd <- main_dem %>% filter(group == "Autistic") %>%
+  summarise(Age = sum(is.na(Age)),
+            ADOS = sum(is.na(ADOS_comparison_score)),
+            VerbalDQ = sum(is.na(DQ_Verbal)),
+            NonVerbalDQ = sum(is.na(DQ_NonVerbal)),
+            Vineland = sum(is.na(Vine_ABC)))
+miss_nt_age <- sum(is.na(main_dem$Age[main_dem$group == "Non-autistic"]))
+
+table1_footnote <- sprintf(
+  paste0("Table 1. Participant characteristics by group, full enrolled sample. ",
+         "M = mean, SD = standard deviation; — = measure not administered to NT group. ",
+         "Missing data (Autistic group, of n = %d): Age n = %d, ADOS-2 n = %d, ",
+         "MSEL Verbal DQ n = %d, MSEL Non-verbal DQ n = %d, Vineland-3 ABC n = %d. ",
+         "Non-autistic group: Age n missing = %d; no clinical measures administered. ",
+         "Means and SDs are computed on available data."),
+  sum(main_dem$group == "Autistic"),
+  miss_asd$Age, miss_asd$ADOS, miss_asd$VerbalDQ,
+  miss_asd$NonVerbalDQ, miss_asd$Vineland, miss_nt_age)
+
+fmt_table(dem_tab, caption = table1_footnote)
+```
+
+## 3.6 Missing Data: Formal Reporting
+
+Missing data arose from three distinct mechanisms:
+
+**Structural / by design (not at random):** Touch engagement was coded as missing for intervals following the experimenter instruction *"please don't touch the robot"*. This is missing not at random (MNAR) by design — missingness is directly caused by child behaviour (excessive touching). A total of **n = 21 children** (ASD = 20, NT = 1) had ≥50% contiguous Touch missingness and were excluded from Touch-specific analyses. An additional **n = 4 children** had complete engagement data missingness across all channels and were excluded from all engagement analyses (per-child exclusion decisions are recorded in the released inclusion/exclusion files).
+
+**Monotone / session dropout:** Engagement missingness for channels other than Touch was predominantly contiguous and occurred at the end of sessions (e.g., child left early, session equipment failure). These were handled via global cutpoint truncation — data beyond the first contiguous NA across any channel were excluded.
+
+**Scattered / coding gaps:** A small number of children had isolated missing intervals within otherwise complete coding sequences. These were classified as missing at random (MAR) and imputed using last-observation-carried-forward (LOCF).
+
+**Word learning trials:** Missing word learning responses (NA in `correct`) indicated that the trial was not administered or the child did not respond. Children with fewer than 4 responded trials out of 12 (n = 28, all ASD) were excluded from word learning analyses.
+
+```{r missing-data-table, echo = TRUE}
+# Engagement missingness summary from cleaned intervals
+eng_miss <- .remap(read_csv(here("engagement_cleaned_intervals.csv"), show_col_types = FALSE)) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic")) %>%
+  group_by(group) %>%
+  summarise(
+    across(c(Proximity, Touch, Communication, Eye, Emotion),
+           list(n_obs = ~sum(!is.na(.)),
+                n_miss = ~sum(is.na(.)),
+                pct_miss = ~round(mean(is.na(.))*100, 1)),
+           .names = "{.col}__{.fn}"),
+    .groups = "drop"
+  )
+
+miss_tab <- bind_rows(lapply(c("Proximity","Touch","Communication","Eye","Emotion"), function(m) {
+  data.frame(
+    Measure = m,
+    Mechanism = ifelse(m=="Touch", "MNAR (by design)", "MAR / truncation"),
+    `ASD n observed` = eng_miss[[paste0(m,"__n_obs")]][eng_miss$group=="Autistic"],
+    `ASD % missing` = eng_miss[[paste0(m,"__pct_miss")]][eng_miss$group=="Autistic"],
+    `NT n observed` = eng_miss[[paste0(m,"__n_obs")]][eng_miss$group=="Non-autistic"],
+    `NT % missing` = eng_miss[[paste0(m,"__pct_miss")]][eng_miss$group=="Non-autistic"],
+    check.names = FALSE
+  )
+}))
+
+fmt_table(miss_tab, caption = "Table 2. Engagement data missingness by measure and group (cleaned interval-level data, goodbye phase excluded)")
+```
+
+---
+
+# 4. Engagement Data Cleaning
+
+## 4.1 Overview of Engagement Measures
+
+Five engagement channels were coded at each 10-second interval across three session phases:
+
+| Channel | Scale | Description |
+|---|---|---|
+| Proximity | 1–5 | Physical closeness to robot |
+| Touch | 1–5 | Physical touch of robot |
+| Communication | 1–5 | Communicative behaviours directed at robot |
+| Eye | 1–5 | Eye contact with robot |
+| Emotion | –2 to +2 | Emotional valence of engagement |
+
+The value `99` was used in the raw phase-averaged dataset to denote cases where Touch was coded as "asked not to touch" (parent/child request). In the interval-level dataset these have already been converted to `NA`.
+
+## 4.2 Rationale for Excluding the Goodbye Phase
+
+The Goodbye phase had substantially higher missingness across all measures (up to 50% for some kids) and was structurally different from the two learning-relevant phases (Intro Play, Q&A). All engagement analyses use **Intro Play and Q&A only**.
+
+```{r drop-goodbye, echo = FALSE}
+measures <- c("Proximity","Touch","Communication","Eye","Emotion")
+
+wide_raw <- d_int %>%
+  filter(phase %in% c("intro_play","q&a")) %>%
+  select(pid, group, phase, interval_num, engagement_type, score) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic")) %>%
+  pivot_wider(names_from = engagement_type, values_from = score) %>%
+  # Recode out-of-range values to scale maximum (1 Communication = 8→5, 2 Eye = 7→5)
+  mutate(
+    Communication = pmin(Communication, 5),
+    Eye = pmin(Eye, 5)
+  ) %>%
+  mutate(phase = factor(phase, levels = c("intro_play","q&a"))) %>%
+  arrange(pid, phase, interval_num) %>%
+  group_by(pid) %>%
+  mutate(session_idx = row_number()) %>%
+  ungroup()
+stopifnot(
+  "All engagement channels must be present after pivot" =
+    all(measures %in% names(wide_raw))
+)
+
+fmt_table(data.frame(` ` = c("Intervals retained (intro_play + q&a)", "Unique children"),
+              Value = c(nrow(wide_raw), n_distinct(wide_raw$pid)), check.names = FALSE),
+   caption = "Intervals after dropping goodbye phase")
+```
+```{r inspect_wide_raw, echo = TRUE}
+# ── WIDE_RAW SNAPSHOT ─────────────────────────────────────────────────────────
+dplyr::count(wide_raw, group, phase) %>%
+  fmt_table(caption = "wide_raw: intervals per group × phase (intro_play + q&a only)")
+dplyr::summarise(wide_raw, across(all_of(measures), ~sum(is.na(.)), .names = "NA_{.col}")) %>%
+  fmt_table(caption = "wide_raw: NA count per engagement channel before cleaning")
+```
+
+
+## 4.3 Missingness Classification
+
+Each child × measure combination is classified using the following rules, applied in session order (Intro Play → Q&A):
+
+| Category | Definition | Action |
+|---|---|---|
+| **Complete** | No missing values | Use as-is |
+| **All missing** | 100% NA | Exclude from that measure's analysis |
+| **Contiguous ≥50%** | NA block starts and stays NA; ≥50% missing | Exclude from measure; truncate all measures at cutpoint |
+| **Contiguous <50%** | NA block starts and stays NA; <50% missing | Truncate all measures at cutpoint; retain pre-cutpoint data |
+| **Scattered** | NAs interspersed with valid data | LOCF imputation using same-measure values only |
+
+The **contiguous** pattern reflects the "asked not to touch" protocol: a parent or child requested no touch contact, after which Touch was no longer coded. Because this instruction may have altered the child's other engagement behaviours, all engagement data after the cutpoint is discarded — not just Touch.
+
+The **50% threshold** for contiguous missingness ensures we do not impute a measure for children where the majority of their data is absent.
+
+```{r classify-missingness, echo = TRUE}
+classify_na <- function(x) {
+  pct <- mean(is.na(x)) * 100
+  if (pct == 0)   return(list(cat = "complete",          first_na = NA_integer_))
+  if (pct == 100) return(list(cat = "all missing",       first_na = 1L))
+  fn   <- which(is.na(x))[1]
+  cont <- all(is.na(x[fn:length(x)]))
+  if (cont & pct >= 50) return(list(cat = "contiguous >=50%", first_na = fn))
+  if (cont & pct <  50) return(list(cat = "contiguous <50%",  first_na = fn))
+  return(list(cat = "scattered", first_na = NA_integer_))
+}
+
+# Summarise missingness category per kid per measure
+flags <- wide_raw %>%
+  group_by(pid, group) %>%
+  summarise(across(all_of(measures),
+    ~classify_na(.)$cat, .names = "{.col}"), .groups = "drop")
+
+fmt_table(flags %>% count(group, Touch) %>% rename(Group = group, Category = Touch, N = n),
+   caption = "Touch missingness categories by group")
+
+fmt_table(flags %>% count(group, Eye) %>% rename(Group = group, Category = Eye, N = n),
+   caption = "Eye missingness categories by group")
+```
+
+## 4.4 Cleaning Pipeline
+
+```{r cleaning-pipeline, echo = FALSE}
+cleaned <- wide_raw %>%
+  group_by(pid, group) %>%
+  group_modify(function(kid, key) {
+
+    # Classify each measure
+    cls <- setNames(lapply(measures, function(m) classify_na(kid[[m]])), measures)
+
+    # Global cutpoint = earliest contiguous NA start across all measures
+    cutpoints  <- sapply(cls, function(c)
+      if (c$cat %in% c("contiguous >=50%","contiguous <50%","all missing")) c$first_na
+      else NA_integer_)
+    global_cut <- suppressWarnings(min(cutpoints, na.rm = TRUE))
+    if (is.infinite(global_cut)) global_cut <- NA_integer_
+
+    # Truncate at global cutpoint
+    if (!is.na(global_cut)) kid <- kid %>% filter(session_idx < global_cut)
+
+    # Exclude contiguous >=50% and all-missing measures entirely
+    for (m in measures)
+      if (cls[[m]]$cat %in% c("contiguous >=50%", "all missing"))
+        kid[[m]] <- NA_real_
+
+    # LOCF imputation for scattered coding gaps (forward then backward for leading NAs)
+    for (m in measures)
+      if (cls[[m]]$cat == "scattered" && nrow(kid) > 0 && any(is.na(kid[[m]])))
+        kid[[m]] <- na.locf(na.locf(kid[[m]], na.rm = FALSE), fromLast = TRUE, na.rm = FALSE)
+
+    kid
+  }) %>%
+  ungroup()
+
+excluded_pids <- setdiff(unique(wide_raw$pid), unique(cleaned$pid))
+
+fmt_table(data.frame(
+  ` ` = c("Intervals (original)", "Intervals (retained)", "Children (retained)", "Children (excluded)"),
+  Value = c(nrow(wide_raw), nrow(cleaned), n_distinct(cleaned$pid),
+            paste(excluded_pids, collapse = ", ")),
+  check.names = FALSE
+), caption = "Cleaning pipeline summary")
+
+fmt_table(data.frame(
+  Measure = measures,
+  `N missing` = sapply(measures, function(m) sum(is.na(cleaned[[m]]))),
+  `% missing` = sapply(measures, function(m) round(mean(is.na(cleaned[[m]]))*100, 1)),
+  check.names = FALSE
+), caption = "Remaining NAs per measure after cleaning")
+```
+```{r inspect_cleaned, echo = TRUE}
+# ── CLEANED INTERVALS SNAPSHOT ────────────────────────────────────────────────
+dplyr::count(cleaned, group, phase) %>%
+  fmt_table(caption = "cleaned: intervals per group × phase after pipeline")
+dplyr::summarise(cleaned, across(all_of(measures), ~sum(is.na(.)), .names = "NA_{.col}")) %>%
+  fmt_table(caption = "cleaned: remaining NA count per engagement channel")
+stopifnot(
+  "Excluded PIDs must not appear in cleaned" =
+    length(intersect(excluded_pids, unique(cleaned$pid))) == 0,
+  "No negative session_idx values" =
+    all(cleaned$session_idx > 0)
+)
+cat("inspect_cleaned assertions passed\n")
+```
+
+**Note:** The 4 children excluded from all engagement analyses had zero valid intervals after applying the cleaning rules. The remaining Touch NAs (8%) come from children whose Touch was fully excluded due to the "asked not to touch" protocol — these children retain valid data for all other measures.
+
+> **Critical methodological detail — Touch cutpoint applies to ALL channels:**
+> When a child was asked not to touch (n = 21), the "asked not to touch" instruction may have altered their behaviour across *all* engagement dimensions from that point onward, not only Touch. The cleaning pipeline therefore applies a **global cutpoint**: the session is truncated at the first Touch-NA interval for *every* channel (Proximity, Communication, Eye Contact, Emotion *and* Touch). Post-instruction intervals are discarded for all measures. This means:
+>
+> - The **4-channel model** (Proximity, Communication, Eye, Emotion; n = 87) **is valid** only because those 21 children's post-instruction data has already been removed from `engagement_cleaned_intervals.csv`. Their pre-instruction data contributes to n = 87.
+> - The **5-channel model** (including Touch; n = 66) excludes these 21 children entirely, because no valid Touch scores remain after truncation.
+> - Readers comparing n = 87 vs n = 66 should note the difference reflects *Touch availability*, not a difference in data quality for the other channels.
+
+```{r touch-cutpoint-verification, echo = TRUE}
+# ── Verify that the global cutpoint was applied for "asked not to touch" kids ──
+# Identify children with Touch entirely NA in cleaned data (i.e., cutpoint kids)
+touch_na_pids <- cleaned %>%
+  group_by(pid) %>%
+  summarise(touch_all_na = all(is.na(Touch)), .groups = "drop") %>%
+  filter(touch_all_na) %>%
+  pull(pid)
+
+cat("Children with Touch entirely NA in cleaned data (cutpoint applied):",
+    length(touch_na_pids), "\n")
+
+# For these children, confirm NO trailing intervals exist after the global cut
+# (i.e., their data ends before or at the touch instruction point)
+cut_check <- wide_raw %>%
+  filter(pid %in% touch_na_pids) %>%
+  group_by(pid) %>%
+  summarise(
+    raw_intervals = n(),
+    first_touch_na = which(is.na(Touch))[1],
+    .groups = "drop"
+  ) %>%
+  left_join(
+    cleaned %>% group_by(pid) %>% summarise(clean_intervals = n(), .groups = "drop"),
+    by = "pid"
+  ) %>%
+  mutate(
+    cut_applied = !is.na(first_touch_na),
+    intervals_removed = raw_intervals - replace_na(clean_intervals, 0),
+    verified = replace_na(clean_intervals, 0) <= (first_touch_na - 1)
+  )
+
+cat("Children where cleaned data ≤ pre-instruction intervals (cutpoint verified):",
+    sum(cut_check$verified, na.rm = TRUE), "of", nrow(cut_check), "\n\n")
+
+fmt_table(cut_check %>%
+     select(pid, raw_intervals, first_touch_na, clean_intervals,
+            intervals_removed, verified) %>%
+     rename(PID = pid,
+            `Raw intervals` = raw_intervals,
+            `Touch NA starts at` = first_touch_na,
+            `Clean intervals` = clean_intervals,
+            `Intervals removed` = intervals_removed,
+            `Cutpoint verified` = verified),
+   caption = paste0(
+     "Touch-cutpoint verification: children asked not to touch (n = ",
+     length(touch_na_pids), "). ",
+     "\"Clean intervals\" must be ≤ \"Touch NA starts at\" − 1 for all channels ",
+     "to confirm the global cutpoint was applied correctly."))
+```
+
+## 4.5 Aggregate to Phase and Overall Means
+
+```{r aggregate-means, echo = FALSE}
+phase_means <- cleaned %>%
+  group_by(pid, group, phase) %>%
+  summarise(across(all_of(measures),
+    ~ifelse(all(is.na(.)), NA_real_, mean(., na.rm = TRUE))),
+    .groups = "drop")
+
+overall_means <- cleaned %>%
+  group_by(pid, group) %>%
+  summarise(across(all_of(measures),
+    ~ifelse(all(is.na(.)), NA_real_, mean(., na.rm = TRUE))),
+    .groups = "drop")
+
+write_csv(cleaned,       here("engagement_cleaned_intervals.csv"))
+write_csv(phase_means,   here("engagement_phase_means.csv"))
+write_csv(overall_means, here("engagement_overall_means.csv"))
+
+fmt_table(overall_means %>%
+  summarise(across(all_of(measures), ~sum(!is.na(.)))) %>%
+  pivot_longer(everything(), names_to = "Measure", values_to = "Valid N"),
+  caption = "Valid N per engagement measure (per-child overall means)")
+```
+```{r inspect_means, echo = TRUE}
+# ── AGGREGATE MEANS SNAPSHOT ──────────────────────────────────────────────────
+dplyr::count(overall_means, group) %>%
+  fmt_table(caption = "overall_means: children per group")
+overall_means %>%
+  dplyr::summarise(across(all_of(measures), ~sum(is.na(.)), .names = "NA_{.col}")) %>%
+  fmt_table(caption = "overall_means: NA count per engagement channel")
+stopifnot(
+  "overall_means must not contain duplicated PIDs" =
+    !anyDuplicated(overall_means$pid),
+  "phase_means must have ≥2 phases per child (most children)" =
+    dplyr::count(phase_means, pid) %>% dplyr::pull(n) %>% max() <= 2
+)
+cat("inspect_means assertions passed\n")
+```
+
+---
+
+# 5. Attrition and Inclusion Checks
+
+To assess whether exclusion decisions introduced systematic bias, included and excluded children were compared on all available demographic and clinical variables: age (months), gender, ADOS comparison score, Vineland Adaptive Behaviour Composite (ABC), verbal DQ, and non-verbal DQ. Continuous variables were compared using Welch *t*-tests; gender was compared using Fisher's exact test. ASD-specific clinical measures (ADOS, Vineland, DQ) are only available for ASD children and are therefore only included in ASD-specific comparisons.
+
+```{r attrition-setup, echo = FALSE}
+# ── Covariates from main dataset ─────────────────────────────────────────────
+cov_data <- main %>%
+  select(pid = PID, group = Condition, Age, Gender,
+         ADOS_comparison_score, Vine_ABC, DQ_Verbal, DQ_NonVerbal) %>%
+  mutate(group = ifelse(group==0, "ASD", "NT")) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"))
+
+# ── Reusable comparison function ─────────────────────────────────────────────
+attrition_compare <- function(incl_pids, excl_pids, group_filter = NULL, caption = "") {
+  dat <- cov_data
+  if (!is.null(group_filter)) dat <- dat %>% filter(group == group_filter)
+  dat <- dat %>%
+    filter(pid %in% c(incl_pids, excl_pids)) %>%
+    mutate(status = ifelse(pid %in% incl_pids, "Included", "Excluded"))
+
+  cont_vars <- list(
+    Age = "Age (months)",
+    ADOS_comparison_score = "ADOS comparison score",
+    Vine_ABC = "Vineland ABC",
+    DQ_Verbal = "Verbal DQ",
+    DQ_NonVerbal = "Non-verbal DQ"
+  )
+
+  rows <- lapply(names(cont_vars), function(v) {
+    incl <- dat[[v]][dat$status=="Included" & !is.na(dat[[v]])]
+    excl <- dat[[v]][dat$status=="Excluded" & !is.na(dat[[v]])]
+    if (length(incl) < 2 | length(excl) < 2) {
+      return(data.frame(Variable = cont_vars[[v]],
+                        Included = ifelse(length(incl)>0, sprintf("%.1f (%.1f)", mean(incl), sd(incl)), "n/a"),
+                        Excluded = ifelse(length(excl)>0, sprintf("%.1f (%.1f)", mean(excl), sd(excl)), "n/a"),
+                        t = NA, df = NA, p = NA, d = NA))
+    }
+    tt <- t.test(incl, excl)
+    d  <- (mean(incl) - mean(excl)) / sqrt((var(incl) + var(excl)) / 2)
+    data.frame(
+      Variable = cont_vars[[v]],
+      Included = sprintf("%.1f (%.1f)", mean(incl), sd(incl)),
+      Excluded = sprintf("%.1f (%.1f)", mean(excl), sd(excl)),
+      t = round(tt$statistic, 2),
+      df = round(tt$parameter, 1),
+      p = fmt_p(tt$p.value),
+      d = round(d, 2)
+    )
+  })
+
+  # Gender (Fisher"s exact)"
+  gend <- dat %>% select(status, Gender) %>% filter(!is.na(Gender))
+  if (nrow(gend) > 0 && length(unique(gend$status)) == 2) {
+    ft <- fisher.test(table(gend$status, gend$Gender))
+    incl_pct <- round(mean(gend$Gender[gend$status=="Included"]==1)*100)
+    excl_pct <- round(mean(gend$Gender[gend$status=="Excluded"]==1)*100)
+    gend_row <- data.frame(Variable = "Gender (% male)",
+                           Included = paste0(incl_pct,"%"),
+                           Excluded = paste0(excl_pct,"%"),
+                           t = NA, df = NA,
+                           p = fmt_p(ft$p.value), d = NA)
+    rows <- c(list(gend_row), rows)
+  }
+
+  result <- bind_rows(rows)
+  n_incl <- sum(dat$status=="Included" & !duplicated(dat$pid[dat$status=="Included"]))
+  n_excl <- sum(dat$status=="Excluded" & !duplicated(dat$pid[dat$status=="Excluded"]))
+  full_cap <- sprintf("%s — Included (n=%d) vs Excluded (n=%d). M (SD) for continuous variables.",
+                      caption, n_incl, n_excl)
+  fmt_table(result %>% rename(`t / OR` = t, `Cohen d` = d), caption = full_cap)
+}
+```
+
+## 5.1 Word Learning Completers vs Non-Completers (ASD Only)
+
+All NT children met the completion threshold (≥4/12 trials responded to). Among ASD children, 31 met the threshold and 28 did not.
+
+```{r attrition-wl, echo = TRUE}
+wl_pids <- trials %>%
+  group_by(pid) %>%
+  summarise(pct = mean(!is.na(correct)), .groups = "drop") %>%
+  mutate(included = pct >= (4/12))
+
+wl_incl_pids <- wl_pids %>% filter(included)  %>% pull(pid)
+wl_excl_pids <- wl_pids %>% filter(!included) %>% pull(pid)
+
+attrition_compare(wl_incl_pids, wl_excl_pids,
+                  group_filter = "ASD",
+                  caption = "Attrition check: ASD word learning completers vs non-completers")
+```
+
+## 5.2 Engagement Analysis: Entirely Excluded vs Included
+
+Four children were excluded from all engagement analyses due to 100% missing engagement data across all measures. Formal testing is not possible with n = 4 excluded; descriptive values are provided.
+
+```{r attrition-eng-excluded, echo = TRUE}
+eng_all_pids  <- unique(d_int$pid)
+eng_incl_pids <- unique(cleaned$pid)
+eng_excl_pids <- setdiff(eng_all_pids, eng_incl_pids)
+
+attrition_compare(eng_incl_pids, eng_excl_pids,
+                  caption = "Attrition check: engagement analysis included vs entirely excluded (n = 4)")
+```
+
+## 5.3 Touch Engagement: Asked Not to Touch vs Not Asked
+
+```{r attrition-touch, echo = TRUE}
+touch_status <- cleaned %>%
+  group_by(pid) %>%
+  summarise(touch_all_na = all(is.na(Touch)), .groups = "drop")
+
+touch_excl_pids <- touch_status %>% filter(touch_all_na)  %>% pull(pid)
+touch_incl_pids <- touch_status %>% filter(!touch_all_na) %>% pull(pid)
+
+attrition_compare(touch_incl_pids, touch_excl_pids,
+                  caption = "Attrition check: Touch analysis — valid Touch data vs asked not to touch (all groups)")
+```
+
+## 5.4 Combined Analysis Sample (Engagement + Word Learning) vs Engagement Only
+
+RQ3 and interaction models required children to have both engagement data and word learning data. Children with engagement data but no word learning data were excluded from those analyses.
+
+```{r attrition-combined, echo = TRUE}
+wl_incl_all   <- wl_pids %>% filter(included) %>% pull(pid)
+both_pids     <- intersect(eng_incl_pids, wl_incl_all)
+eng_only_pids <- setdiff(eng_incl_pids, wl_incl_all)
+
+attrition_compare(both_pids, eng_only_pids,
+                  caption = "Attrition check: combined engagement + word learning sample vs engagement-only")
+```
+
+---
+
+# 6. Factor Analysis of Engagement Measures
+
+## 6.1 Rationale
+
+Before running group comparisons or predictive models, we examined the factor structure of the five engagement channels. Given theoretical reasons to expect different engagement patterns in autistic versus neurotypical children, factor analyses were conducted **separately by group** using the cleaned interval-level data.
+
+The **goodbye phase was excluded** (insufficient data), and the analysis used **listwise complete cases** within each group. Note that Touch NAs for excluded children mean the ASD 5-measure factor analysis reflects only the 31 ASD children with valid Touch data.
+
+```{r fa-data-prep, echo = TRUE}
+d_fa <- .remap(read_csv(here("engagement_cleaned_intervals.csv"), show_col_types = FALSE)) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"))
+vars5 <- c("Proximity","Touch","Communication","Eye","Emotion")
+
+fmt_table(d_fa %>%
+  group_by(group) %>%
+  summarise(`N intervals` = n(), `N children` = n_distinct(pid),
+            `N listwise complete` = sum(complete.cases(across(all_of(vars5))))),
+  caption = "Factor analysis sample sizes by group")
+```
+
+## 6.2 ASD Group — 5-Measure FA
+
+```{r fa-asd-5, results = "markup", echo = TRUE}
+g_asd <- na.omit(d_fa %>% filter(group=="Autistic") %>% select(all_of(vars5)))
+cat("ASD 5-measure FA: N =", nrow(g_asd), "intervals\n")
+kmo_asd5 <- KMO(g_asd)
+bart_asd5 <- cortest.bartlett(g_asd)
+cat(sprintf("KMO = %.3f | Bartlett χ²(%d) = %.1f, p < .001\n",
+            kmo_asd5$MSA, bart_asd5$df, bart_asd5$chisq))
+
+fa_asd5 <- fa(g_asd, nfactors = 2, fm = "ml", rotate = "oblimin")
+
+# Factor loadings table
+ld_asd5 <- as.data.frame(unclass(fa_asd5$loadings)) %>%
+  round(3) %>%
+  setNames(c("Factor 1 (Physical)", "Factor 2 (Social-Emotional)")) %>%
+  rownames_to_column("Measure")
+fmt_table(ld_asd5, caption = "ASD 5-measure FA: Factor loadings (oblimin rotation, ML estimation)")
+
+# Fit indices
+fmt_table(data.frame(
+  Index = c("RMSEA", "TLI", "BIC", "Factor correlation (r)"),
+  Value = c(round(fa_asd5$RMSEA[1],3), round(fa_asd5$TLI,3),
+            round(fa_asd5$BIC,1), round(fa_asd5$Phi[1,2],3))
+), caption = "ASD 5-measure FA: Model fit indices")
+
+# Correlation matrix
+fmt_table(round(cor(g_asd, use = "complete.obs"), 3) %>% as.data.frame() %>% rownames_to_column("Measure"),
+   caption = "ASD 5-measure FA: Observed correlation matrix (listwise deletion)")
+```
+
+## 6.3 ASD Group — 4-Measure FA (All ASD Kids, Touch Excluded)
+
+Because 20 ASD children had Touch fully excluded, a 4-measure FA (excluding Touch) was run on all 51 ASD children to assess structure without Touch.
+
+```{r fa-asd-4, results = "markup", echo = TRUE}
+vars4 <- c("Proximity","Communication","Eye","Emotion")
+g_asd4 <- na.omit(d_fa %>% filter(group=="Autistic") %>% select(all_of(vars4)))
+cat("ASD 4-measure FA: N =", nrow(g_asd4), "intervals\n")
+
+fa_asd4 <- fa(g_asd4, nfactors = 1, fm = "ml", rotate = "none")
+
+ld_asd4 <- as.data.frame(unclass(fa_asd4$loadings)) %>%
+  round(3) %>%
+  setNames("Factor 1") %>%
+  rownames_to_column("Measure")
+fmt_table(ld_asd4, caption = "ASD 4-measure FA: Factor loadings (no rotation, ML estimation)")
+
+fmt_table(data.frame(
+  Index = c("RMSEA", "TLI", "BIC"),
+  Value = c(round(fa_asd4$RMSEA[1],3), round(fa_asd4$TLI,3), round(fa_asd4$BIC,1))
+), caption = "ASD 4-measure FA: Model fit indices")
+
+fmt_table(round(cor(g_asd4, use = "complete.obs"), 3) %>% as.data.frame() %>% rownames_to_column("Measure"),
+   caption = "ASD 4-measure FA: Observed correlation matrix (listwise deletion)")
+```
+
+## 6.4 NT Group — 5-Measure FA
+
+```{r fa-nt-5, results = "markup", echo = TRUE}
+g_nt <- na.omit(d_fa %>% filter(group=="Non-autistic") %>% select(all_of(vars5)))
+cat("NT 5-measure FA: N =", nrow(g_nt), "intervals\n")
+kmo_nt5 <- KMO(g_nt)
+cat(sprintf("KMO = %.3f\n", kmo_nt5$MSA))
+
+fa_nt5 <- fa(g_nt, nfactors = 2, fm = "ml", rotate = "oblimin")
+
+ld_nt5 <- as.data.frame(unclass(fa_nt5$loadings)) %>%
+  round(3) %>%
+  setNames(c("Factor 1 (Proximity)", "Factor 2 (Social cluster)")) %>%
+  rownames_to_column("Measure")
+fmt_table(ld_nt5, caption = "NT 5-measure FA: Factor loadings (oblimin rotation, ML estimation)")
+
+fmt_table(data.frame(
+  Index = c("RMSEA", "TLI", "BIC", "Factor correlation (r)"),
+  Value = c(round(fa_nt5$RMSEA[1],3), round(fa_nt5$TLI,3),
+            round(fa_nt5$BIC,1), round(fa_nt5$Phi[1,2],3))
+), caption = "NT 5-measure FA: Model fit indices")
+
+fmt_table(round(cor(g_nt, use = "complete.obs"), 3) %>% as.data.frame() %>% rownames_to_column("Measure"),
+   caption = "NT 5-measure FA: Observed correlation matrix (listwise deletion)")
+```
+
+## 6.5 Summary
+
+The factor structures differed meaningfully between groups:
+
+- **ASD (5-measure):** Factor 1 = Physical engagement (Proximity, Touch); Factor 2 = Emotional-Social engagement (Emotion, Communication, Eye). Factors correlated *r* = .39. RMSEA = .108, TLI = .855.
+- **NT (5-measure):** Factor 1 = Proximity alone; Factor 2 = Social cluster (Touch, Communication, Eye, Emotion loosely). Factors correlated *r* = .40. RMSEA = .094, TLI = .775.
+- **ASD (4-measure, no Touch):** A 1-factor solution fits poorly (RMSEA = .118), confirming Touch plays a key structural role in ASD engagement organisation.
+
+Given these fundamentally different structures, **no composite scores were created**. All five engagement channels are treated as separate subscales throughout the analyses.
+
+---
+
+# 7. Word Learning Analysis
+
+## 7.1 Data Preparation
+
+### Completion Threshold
+
+Children must have responded to at least 4 of 12 word learning trials to be included.
+
+```{r wl-data-prep, echo = TRUE}
+include_pids <- trials %>%
+  group_by(pid) %>%
+  summarise(pct = mean(!is.na(correct))) %>%
+  filter(pct >= (4/12)) %>%
+  pull(pid)
+# Assert all NT children cleared the completion threshold
+nt_all_pids <- main %>% filter(Condition == 1) %>% pull(PID)
+stopifnot(
+  "All NT children must pass the completion threshold" =
+    all(nt_all_pids %in% include_pids)
+)
+
+base <- trials %>%
+  filter(pid %in% include_pids, !is.na(correct)) %>%
+  left_join(main %>% select(PID, Condition, Age, ADOS_comparison_score, DQ_Verbal),
+            by = c("pid" = "PID")) %>%
+  left_join(.remap(read_csv(here("engagement_overall_means.csv"), show_col_types = FALSE)) %>%
+              mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic")),
+            by = "pid") %>%
+  mutate(
+    group = factor(ifelse(Condition==0,"ASD","NT"), levels = c("ASD","NT")),
+    word_type = factor(sub("_[0-9]+$","", test_item),
+                       levels = c("pok","lif","neem","wug"),
+                       labels = c("POK","LIF","NEEM","WUG"))
+  ) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"))
+
+
+stopifnot(
+  "base must contain exactly two groups" =
+    setequal(levels(base$group), c("ASD", "NT")) ||
+    setequal(unique(base$group), c("Autistic", "Non-autistic"))
+)
+sample_tbl <- base %>% distinct(pid, group) %>% count(group, name = "N children") %>%
+  left_join(base %>% count(group, name = "N trials"), by = "group") %>%
+  left_join(base %>% group_by(group) %>%
+              summarise(`M accuracy` = round(mean(correct),3),
+                        `SD accuracy` = round(sd(correct),3)), by = "group")
+fmt_table(sample_tbl, caption = "Word learning sample (≥4 of 12 trials responded to)")
+
+fmt_table(base %>% group_by(group, word_type) %>%
+  summarise(M = round(mean(correct),3), .groups = "drop") %>%
+  pivot_wider(names_from = group, values_from = M),
+  caption = "Mean accuracy by group and word type")
+```
+
+```{r demographics-table-completers, echo = TRUE}
+# Table 2 — Word-learning analysis sample (children with ≥ 4 valid trials)
+# Sample is the same `base`-distinct PIDs used for §7.2–§7.5 word-learning models.
+completer_pids <- base %>% distinct(pid) %>% pull(pid)
+completer_dem  <- main_dem %>% filter(PID %in% completer_pids)
+
+dem_tab2 <- completer_dem %>%
+  group_by(group) %>%
+  summarise(
+    `n` = n(),
+    `Age (months): M (SD)` = sprintf("%.1f (%.1f)", mean(Age, na.rm = TRUE), sd(Age, na.rm = TRUE)),
+    `Age range` = sprintf("%d–%d", floor(min(Age, na.rm = TRUE)), ceiling(max(Age, na.rm = TRUE))),
+    `Gender: % male` = sprintf("%.0f%%", mean(Gender == "Male", na.rm = TRUE) * 100),
+    `ADOS-2 comp. score: M (SD)` = ifelse(all(is.na(ADOS_comparison_score)), "—",
+      sprintf("%.1f (%.1f)", mean(ADOS_comparison_score, na.rm = TRUE), sd(ADOS_comparison_score, na.rm = TRUE))),
+    `MSEL Verbal DQ: M (SD)` = ifelse(all(is.na(DQ_Verbal)), "—",
+      sprintf("%.1f (%.1f)", mean(DQ_Verbal, na.rm = TRUE), sd(DQ_Verbal, na.rm = TRUE))),
+    `MSEL Non-verbal DQ: M (SD)` = ifelse(all(is.na(DQ_NonVerbal)), "—",
+      sprintf("%.1f (%.1f)", mean(DQ_NonVerbal, na.rm = TRUE), sd(DQ_NonVerbal, na.rm = TRUE))),
+    `Vineland-3 ABC: M (SD)` = ifelse(all(is.na(Vine_ABC)), "—",
+      sprintf("%.1f (%.1f)", mean(Vine_ABC, na.rm = TRUE), sd(Vine_ABC, na.rm = TRUE))),
+    .groups = "drop"
+  ) %>%
+  t() %>%
+  as.data.frame() %>%
+  rownames_to_column("Characteristic")
+colnames(dem_tab2)[2:3] <- c("Autistic", "Non-autistic")
+dem_tab2 <- dem_tab2[-1, ]
+
+# Footnote: per-measure missingness within the completer sample
+miss_c_asd <- completer_dem %>% filter(group == "Autistic") %>%
+  summarise(Age = sum(is.na(Age)), ADOS = sum(is.na(ADOS_comparison_score)),
+            VerbalDQ = sum(is.na(DQ_Verbal)), NonVerbalDQ = sum(is.na(DQ_NonVerbal)),
+            Vineland = sum(is.na(Vine_ABC)))
+n_c_asd <- sum(completer_dem$group == "Autistic")
+
+table2_footnote <- sprintf(
+  paste0("Table 2. Participant characteristics of the word-learning analysis sample ",
+         "(children with ≥ 4 of 12 valid trials). M = mean, SD = standard deviation; ",
+         "— = measure not administered to NT group. Missing data (Autistic, of n = %d): ",
+         "Age n = %d, ADOS-2 n = %d, MSEL Verbal DQ n = %d, MSEL Non-verbal DQ n = %d, ",
+         "Vineland-3 ABC n = %d."),
+  n_c_asd, miss_c_asd$Age, miss_c_asd$ADOS, miss_c_asd$VerbalDQ,
+  miss_c_asd$NonVerbalDQ, miss_c_asd$Vineland)
+
+fmt_table(dem_tab2, caption = table2_footnote)
+```
+
+```{r inspect_base, echo = TRUE}
+# ── WORD LEARNING BASE SNAPSHOT ───────────────────────────────────────────────
+dplyr::count(base, group) %>%
+  dplyr::rename(`N children` = n) %>%
+  dplyr::left_join(
+    base %>% dplyr::count(group, name = "N trials"),
+    by = "group"
+  ) %>%
+  fmt_table(caption = "base: trial counts by group after completion threshold")
+cat("Unique children:", dplyr::n_distinct(base$pid), "\n")
+cat("Correct column range: [", min(base$correct), ",", max(base$correct), "]\n")
+stopifnot(
+  "All correct values must be 0 or 1" =
+    all(base$correct %in% c(0L, 1L)),
+  "No child has fewer than 4 trials in base" =
+    all(dplyr::count(base, pid)$n >= 1)
+)
+cat("inspect_base assertions passed\n")
+```
+
+## 7.1.5 Pre-Analysis Covariate Screening
+
+Before fitting any covariate-adjusted models, each candidate control variable (Age, ADOS comparison score, Verbal DQ) is tested for a significant association with the main DV (word learning accuracy) and with each engagement channel predictor, in the Autistic subsample only. A covariate is retained in a subsequent GLMM only if it shows a significant Pearson correlation (*p* < .05) with either the outcome or a predictor in that model. This avoids unnecessary parameters and reduces overfitting risk, particularly given the small ASD sample sizes.
+
+```{r covariate-screening, results = "markup", echo = TRUE}
+# Define engagement means here (RQ4 / §8 also rebuilds this).
+# Needed locally because §8 RQ4 now runs after §7 Word Learning.
+if (!exists("means")) {
+  means <- .remap(read_csv(here("engagement_overall_means.csv"), show_col_types = FALSE)) %>%
+    mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"),
+           group = factor(group, levels = c("Autistic", "Non-autistic")))
+}
+if (!exists("measures")) {
+  measures <- c("Proximity", "Touch", "Communication", "Eye", "Emotion")
+}
+
+# ── Per-child summary: Autistic children with covariate data ──────────────────
+cov_dat <- base %>%
+  filter(group == "Autistic") %>%
+  group_by(pid, Age, ADOS_comparison_score, DQ_Verbal) %>%
+  summarise(wl_accuracy = mean(correct, na.rm = TRUE), .groups = "drop") %>%
+  left_join(
+    means %>%
+      filter(group == "Autistic") %>%
+      select(pid, all_of(measures)),
+    by = "pid"
+  )
+
+cat("Covariate screening sample: n =", nrow(cov_dat), "Autistic children\n")
+cat("Complete on all 3 covariates:",
+    sum(complete.cases(cov_dat[c("Age","ADOS_comparison_score","DQ_Verbal")])),
+    "children\n\n")
+
+# ── Pearson r for every covariate × outcome pair ──────────────────────────────
+screen_cor <- function(dat, covariate, outcomes) {
+  bind_rows(lapply(outcomes, function(y) {
+    d <- dat %>% filter(!is.na(.data[[covariate]]), !is.na(.data[[y]]))
+    if (nrow(d) < 5) return(data.frame(
+      Covariate = covariate, Outcome = y, r = NA_real_, p = NA_real_, n = nrow(d)))
+    ct <- cor.test(d[[covariate]], d[[y]], method = "pearson")
+    data.frame(Covariate = covariate, Outcome = y,
+               r = round(ct$estimate, 3), p = fmt_p(ct$p.value), n = nrow(d))
+  }))
+}
+
+covariates    <- c("Age", "ADOS_comparison_score", "DQ_Verbal")
+screen_outcomes <- c("wl_accuracy", measures)
+
+cov_screen <- bind_rows(lapply(covariates, screen_cor,
+                               dat = cov_dat, outcomes = screen_outcomes)) %>%
+  mutate(
+    sig = case_when(is.na(p)  ~ "",
+                        p < .001  ~ "***",
+                        p < .01   ~ "**",
+                        p < .05   ~ "*",
+                        TRUE      ~ ""),
+    Outcome = recode(Outcome,
+                     wl_accuracy = "WL Accuracy",
+                     Proximity = "Proximity",
+                     Touch = "Touch",
+                     Communication = "Communication",
+                     Eye = "Eye Contact",
+                     Emotion = "Emotion")
+  ) %>%
+  mutate(label = ifelse(sig == "", sprintf("r = %.3f, p = %s", r, p),
+                        sprintf("r = %.3f, p = %s %s", r, p, sig)))
+
+fmt_table(cov_screen %>%
+     select(Covariate, Outcome, r, p, sig, n) %>%
+     rename(Cov = Covariate, `r (Pearson)` = r, `p` = p, `Sig.` = sig, N = n),
+   caption = paste0("Pre-analysis covariate screening: Pearson r between covariates and",
+                  " main DV / engagement predictors (Autistic children only).",
+                  " * p<.05  ** p<.01  *** p<.001"))
+
+# ── Decision vectors ──────────────────────────────────────────────────────────
+# sig_covs_wl  — covariates that predict WL accuracy (used in RQ1 adj. model)
+# sig_covs_any — covariates predicting WL OR any engagement channel (used in RQ3)
+
+sig_covs_wl <- cov_screen %>%
+  filter(Outcome == "WL Accuracy", !is.na(p), p < .05) %>%
+  pull(Covariate)
+
+sig_covs_any <- cov_screen %>%
+  filter(!is.na(p), p < .05) %>%
+  pull(Covariate) %>% unique()
+
+cat("Retained for RQ1 covariate model (predict WL accuracy):",
+    if (length(sig_covs_wl) == 0) "none — covariate-adjusted RQ1 model will be skipped"
+    else paste(sig_covs_wl, collapse = ", "), "\n")
+
+cat("Retained for RQ3 covariate models (predict WL or any eng. channel):",
+    if (length(sig_covs_any) == 0) "none — covariate-adjusted RQ3 models will be skipped"
+    else paste(sig_covs_any, collapse = ", "), "\n")
+```
+
+## 7.2 RQ1 — Do Autistic Children Learn Above Chance?
+
+```{r consort-rq1, echo = TRUE, fig.width = 8, fig.height = 4.6}
+# Compute n with complete covariates for display (no model fitting here)
+.rq1_n_cov <- base %>%
+  filter(group == "Autistic") %>%
+  distinct(pid, Age, ADOS_comparison_score, DQ_Verbal) %>%
+  filter(complete.cases(.)) %>%
+  nrow()
+.rq1_n_excl_cov <- n_distinct(base %>% filter(group=="Autistic") %>% pull(pid)) - .rq1_n_cov
+
+rq_consort(list(
+  list(type = "in", label = "Enrolled Autistic\nn = 59"),
+  list(type = "ex", label = sprintf("Excluded: n = %d\n< 4 word learning trials completed",
+                                59L - n_distinct(base %>% filter(group=="Autistic") %>% pull(pid)))),
+  list(type = "in", label = sprintf("Word learning sample\nn = %d Autistic",
+                                n_distinct(base %>% filter(group=="Autistic") %>% pull(pid)))),
+  list(type = "in", label = sprintf("RQ1 — Unadjusted model\nn = %d Autistic",
+                                n_distinct(base %>% filter(group=="Autistic") %>% pull(pid)))),
+  list(type = "ex", label = sprintf("Excluded (covariate adj.): n = %d\nMissing Age, ADOS, or Verbal DQ",
+                                .rq1_n_excl_cov)),
+  list(type = "in", label = sprintf("RQ1 — Covariate-adjusted model\nn = %d Autistic\n[if covariates pass screening]",
+                                .rq1_n_cov))
+), title = "RQ1 — Participant Flow: Autistic Children Above Chance")
+```
+
+*Do autistic children perform above the 50% chance level on the novel word learning task?*
+
+```{r rq1-above-chance, results = "markup", echo = TRUE}
+asd_trials <- base %>% filter(group=="Autistic")
+ctrl <- glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 2e5))
+
+scale_var <- function(x) as.numeric(scale(x))
+
+# ── Model 1: intercept only (full ASD word-learning sample) ──────────────────
+rq1_mod <- glmer(correct ~ 1 + (1|pid),
+                 data = asd_trials, family = binomial, control = ctrl)
+s1 <- as.data.frame(round(summary(rq1_mod)$coefficients, 3)) %>%
+  rownames_to_column("Term") %>%
+  rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`) %>%
+  mutate(`Predicted accuracy` = round(plogis(b), 3))
+fmt_table(s1, caption = "RQ1: GLMM intercept test — Autistic overall accuracy vs chance (50%)")
+
+# ── Model 2: covariate-adjusted (only if screening found significant covariates)
+rq1_cov        <- NULL   # initialise so rq1-result chunk always has object to check
+asd_trials_cov <- NULL
+
+if (length(sig_covs_wl) == 0) {
+  cat("NOTE: No covariates significantly correlated with WL accuracy in screening.",
+      "Covariate-adjusted RQ1 model not fitted.\n")
+} else {
+  z_wl_names <- paste0("z_", sig_covs_wl)
+  asd_trials_cov <- asd_trials %>%
+    filter(complete.cases(pick(all_of(sig_covs_wl)))) %>%
+    mutate(across(all_of(sig_covs_wl), scale_var, .names = "z_{.col}"))
+
+  cat("RQ1 covariate model: N kids =", n_distinct(asd_trials_cov$pid),
+      "| N trials =", nrow(asd_trials_cov), "\n")
+  cat("Covariates included:", paste(sig_covs_wl, collapse = ", "), "\n")
+
+  rq1_cov_formula <- reformulate(c(z_wl_names, "(1|pid)"), response = "correct")
+  rq1_cov <- glmer(rq1_cov_formula, data = asd_trials_cov,
+                   family = binomial, control = ctrl)
+  s1_cov <- as.data.frame(round(summary(rq1_cov)$coefficients, 3)) %>%
+    rownames_to_column("Term") %>%
+    rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`) %>%
+    mutate(`Predicted accuracy` = round(plogis(b), 3))
+  s1_cov$`Predicted accuracy`[-1] <- NA
+  fmt_table(s1_cov,
+     caption = sprintf(
+       "RQ1: Covariate-adjusted GLMM (covariates: %s; n = %d Autistic children)",
+       paste(sig_covs_wl, collapse = ", "), n_distinct(asd_trials_cov$pid)))
+}
+```
+
+```{r rq1-result, echo = FALSE}
+rq1_b    <- round(fixef(rq1_mod)[["(Intercept)"]], 3)
+rq1_p    <- round(summary(rq1_mod)$coefficients[1, 4], 3)
+rq1_prob <- round(plogis(fixef(rq1_mod)[["(Intercept)"]]) * 100, 1)
+# Covariate model values — only computed if model was fitted
+rq1_cov_b    <- if (!is.null(rq1_cov)) round(fixef(rq1_cov)[["(Intercept)"]], 3)             else NA
+rq1_cov_z    <- if (!is.null(rq1_cov)) round(summary(rq1_cov)$coefficients[1, 3], 2)        else NA
+rq1_cov_p    <- if (!is.null(rq1_cov)) round(summary(rq1_cov)$coefficients[1, 4], 3)        else NA
+rq1_cov_prob <- if (!is.null(rq1_cov)) round(plogis(fixef(rq1_cov)[["(Intercept)"]]) * 100, 1) else NA
+rq1_cov_n    <- if (!is.null(rq1_cov)) n_distinct(asd_trials_cov$pid)                       else NA
+```
+
+**Result (unadjusted):** The GLMM intercept was `r rq1_b` (log-odds), corresponding to an overall predicted accuracy of `r rq1_prob`% (*z* = `r round(summary(rq1_mod)$coefficients[1,3],2)`, *p* = `r fmt_p(rq1_p)`). `r if(rq1_p < .05) "Autistic children performed significantly above the 50% chance level." else "Performance was not significantly above the 50% chance level."`
+
+`r if (is.null(rq1_cov)) { "**Covariate-adjusted model:** Not fitted — no covariates passed the pre-analysis screening (Section 7.1.5)." } else { paste0( "**Result (covariate-adjusted):** Controlling for ", paste(sig_covs_wl, collapse=", "), ", the intercept was ", rq1_cov_b, " (log-odds; predicted accuracy ", rq1_cov_prob, "%, *z* = ", rq1_cov_z, ", *p* = ", rq1_cov_p, "). ", if (!is.na(rq1_cov_p) && rq1_cov_p < .05) "Autistic children performed significantly above chance after covariate adjustment." else "Performance was not significantly above chance after covariate adjustment.", " Model fitted on the reduced subsample with complete covariate data (*n* = ", rq1_cov_n, " children)." ) }`
+
+**In plain language:** We first asked whether autistic children actually learned the new words, or were simply guessing. A child guessing at random would pick the right object about half the time. Autistic children picked correctly about `r rq1_prob`% of the time, and the model shows this is a real step above guessing rather than luck (*p* = `r fmt_p(rq1_p)`). It is a modest edge, not mastery, but as a group the autistic children did learn from the robot. We also checked whether age, autism characteristics, or verbal ability needed to be taken into account; none was related to performance, so the simple model stands.
+
+## 7.3 RQ2 — Group Differences in Word Learning
+
+```{r consort-rq2, echo = TRUE, fig.width = 8, fig.height = 3.5}
+rq_consort(list(
+  list(type = "in", label = "Enrolled\nn = 97  (Autistic = 59, Non-autistic = 38)"),
+  list(type = "ex", label = sprintf(
+    "Excluded: n = %d Autistic\n< 4 word learning trials completed\n(Non-autistic: 0 excluded)",
+    59L - n_distinct(base %>% filter(group=="Autistic") %>% pull(pid)))),
+  list(type = "in", label = sprintf(
+    "RQ2 Analysis\nn = %d  (Autistic = %d, Non-autistic = %d)",
+    n_distinct(base$pid),
+    n_distinct(base %>% filter(group=="Autistic") %>% pull(pid)),
+    n_distinct(base %>% filter(group=="Non-autistic") %>% pull(pid))))
+), title = "RQ2 — Participant Flow: Group Differences in Word Learning")
+```
+
+*Do autistic and non-autistic children differ in word learning accuracy?*
+
+```{r rq2-group-difference, results = "markup", echo = TRUE}
+base_nt_ref <- base %>% mutate(group = factor(group, levels = c("Non-autistic","Autistic")))
+
+rq2_mod <- glmer(correct ~ group + (1|pid),
+                 data = base_nt_ref, family = binomial, control = ctrl)
+fmt_table(as.data.frame(round(summary(rq2_mod)$coefficients, 3)) %>%
+     rownames_to_column("Term") %>%
+     rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+   caption = "RQ2: GLMM group difference in word learning (NT reference)")
+```
+
+**Result:** There was no significant group difference in word learning accuracy (*b* = –0.20, *SE* = 0.18, *z* = –1.12, *p* = .264).
+
+**In plain language:** Autistic and non-autistic children learned the words at similar rates (about 58% vs 62% correct per child). A gap that small is well within what chance variation would produce, so we cannot treat it as a real difference. The Bayesian check (Section 9.1) leaned the same way, though only weakly, so "no difference" is the better-supported reading rather than a settled fact. On this task, learning words from a robot did not depend on diagnosis.
+
+## 7.4 Visualisation — Word Learning
+
+```{r plot1-word-learning, fig.width = 8, fig.height = 5, echo = TRUE}
+acc_kid <- base %>%
+  group_by(pid, group) %>%
+  summarise(acc = mean(correct), .groups = "drop")
+
+ggplot(acc_kid, aes(x = group, y = acc, fill = group, colour = group)) +
+  geom_violin(alpha = 0.3, linewidth = 0.4, trim = TRUE) +
+  geom_boxplot(width = 0.14, outlier.shape = NA, linewidth = 0.5,
+               colour = "grey30", fill = "white") +
+  geom_jitter(width = 0.08, size = 1.8, alpha = 0.5) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey40", linewidth = 0.7) +
+  annotate("text", x = 0.58, y = 0.525, label = "Chance", size = 3.5, colour = "grey40") +
+  scale_fill_manual(values = pal, name = "Group") +
+  scale_colour_manual(values = pal, name = "Group") +
+  scale_y_continuous(limits = c(-0.05,1.05), labels = percent_format()) +
+  guides(fill = guide_legend(override.aes = list(shape = 15, size = 4)), colour = "none") +
+  labs(title = "Word Learning Accuracy by Group",
+       x = "Group", y = "Proportion Correct") +
+  theme_pub
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig3_wl_accuracy.png", last_plot(), width = 8, height = 5, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig3_wl_accuracy.pdf", last_plot(), width = 8, height = 5, bg = "white"), silent = TRUE)
+```
+
+```{r fig7-word-accuracy, fig.width = 9, fig.height = 5, echo = TRUE}
+word_acc <- base %>%
+  group_by(group, word_type) %>%
+  summarise(
+    M = mean(correct, na.rm = TRUE),
+    SE = sd(correct, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+ggplot(word_acc, aes(x = word_type, y = M, colour = group, group = group)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey40", linewidth = 0.6) +
+  geom_errorbar(aes(ymin = M - SE, ymax = M + SE),
+                position = position_dodge(0.5), width = 0.2) +
+  geom_point(position = position_dodge(0.5), size = 3) +
+  annotate("text", x = 0.6, y = 0.515, label = "Chance", size = 3.5, colour = "grey40") +
+  scale_colour_manual(values = pal, name = "Group") +
+  scale_y_continuous(limits = c(0.3, 0.9), labels = scales::percent_format()) +
+  labs(title = "Word Learning Accuracy by Word and Group",
+       x = "Novel Word", y = "Proportion Correct (M ± SE)") +
+  theme_pub
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig4_wl_by_word.png", last_plot(), width = 9, height = 5, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig4_wl_by_word.pdf", last_plot(), width = 9, height = 5, bg = "white"), silent = TRUE)
+```
+
+## 7.5 RQ3 — Engagement Predicts Word Learning in ASD
+
+```{r consort-rq3, echo = TRUE, fig.width = 8, fig.height = 5.5}
+# Compute sub-sample sizes from base (asd_base computed inline to avoid dependency)
+.asd_wl <- base %>% filter(group == "Autistic")
+.n_asd_wl <- n_distinct(.asd_wl$pid)
+
+# 4-subscale: complete on Proximity, Communication, Eye, Emotion
+.n_asd4 <- .asd_wl %>%
+  filter(complete.cases(pick(Proximity, Communication, Eye, Emotion))) %>%
+  distinct(pid) %>% nrow()
+
+# 5-subscale: complete on all 5 channels (requires Touch-valid subset)
+.n_asd5 <- .asd_wl %>%
+  filter(complete.cases(pick(Proximity, Touch, Communication, Eye, Emotion))) %>%
+  distinct(pid) %>% nrow()
+
+rq_consort(list(
+  list(type = "in", label = "Enrolled Autistic\nn = 59"),
+  list(type = "ex", label = sprintf("Excluded (WL): n = %d\n< 4 trials completed", 59L - .n_asd_wl)),
+  list(type = "in", label = sprintf("Autistic with word learning data\nn = %d", .n_asd_wl)),
+  list(type = "ex", label = sprintf(
+    "Excluded (4-subscale): n = %d\nMissing Proximity / Communication /\nEye Contact / Emotion data",
+    .n_asd_wl - .n_asd4)),
+  list(type = "in", label = sprintf(
+    "RQ3 — 4-subscale model\n(Proximity, Communication, Eye, Emotion)\nn = %d Autistic", .n_asd4)),
+  list(type = "ex", label = sprintf(
+    "Excluded (5-subscale): n = %d\nMissing Touch data or\ninstructed not to touch",
+    .n_asd4 - .n_asd5)),
+  list(type = "in", label = sprintf(
+    "RQ3 — 5-subscale model\n(+ Touch channel)\nn = %d Autistic", .n_asd5))
+), title = "RQ3 — Participant Flow: Engagement → Word Learning (Autistic Only)")
+```
+
+*Among autistic children, does engagement with the social robot relate to word learning (overall and by engagement channel)?*
+
+> **Sample size note — touch cutpoint applies here too:**
+> The 4-subscale model (n = 30 Autistic) uses Proximity, Communication, Eye, and Emotion scores. As in RQ4, this is valid because the cleaning pipeline truncated *all* channels at the touch-instruction cutpoint for children asked not to touch. Those children contribute only pre-instruction intervals to their engagement means. The 5-subscale model (n = 20 Autistic) is further restricted to children with valid Touch data (Touch-valid subset). See Section 4.3–4.4 for the cutpoint logic and the touch-cutpoint verification table for confirmation.
+
+```{r rq3-asd-only, results = "markup", echo = TRUE}
+asd_base <- base %>%
+  filter(group=="Autistic") %>%
+  mutate(group = factor(group, levels = c("Non-autistic","Autistic")))
+
+# ── 4-subscale model: engagement only ────────────────────────────────────────
+dASD4 <- asd_base %>%
+  filter(complete.cases(pick(Proximity,Communication,Eye,Emotion))) %>%
+  mutate(across(c(Proximity,Communication,Eye,Emotion), scale_var, .names = "z_{.col}"))
+cat("RQ3 4-subscale (no covariates): N kids =", n_distinct(dASD4$pid),
+    "| N trials =", nrow(dASD4), "\n")
+
+rq3_4 <- glmer(correct ~ z_Proximity + z_Communication + z_Eye + z_Emotion +
+                 (1|pid), data = dASD4, family = binomial, control = ctrl)
+fmt_table(as.data.frame(round(summary(rq3_4)$coefficients, 3)) %>%
+     rownames_to_column("Term") %>%
+     rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+   caption = sprintf("RQ3: GLMM engagement → word learning in ASD, 4-subscale (n = %d children)",
+                   n_distinct(dASD4$pid)))
+
+# ── 4-subscale model: engagement + retained covariates (if any passed screening)
+if (length(sig_covs_any) == 0) {
+  cat("NOTE: No covariates passed screening — 4-subscale covariate model not fitted.\n")
+  dASD4_cov <- NULL
+} else {
+  eng4_vars  <- c("Proximity","Communication","Eye","Emotion")
+  cov4_vars  <- sig_covs_any
+  all4_vars  <- c(eng4_vars, cov4_vars)
+  z4_cov     <- paste0("z_", cov4_vars)
+  dASD4_cov  <- asd_base %>%
+    filter(complete.cases(pick(all_of(all4_vars)))) %>%
+    mutate(across(all_of(all4_vars), scale_var, .names = "z_{.col}"))
+  cat("RQ3 4-subscale (with covariates:", paste(cov4_vars, collapse = ", "),
+      "): N kids =", n_distinct(dASD4_cov$pid),
+      "| N trials =", nrow(dASD4_cov), "\n")
+  rq3_4_cov_formula <- reformulate(
+    c(z4_cov, "z_Proximity","z_Communication","z_Eye","z_Emotion","(1|pid)"),
+    response = "correct")
+  rq3_4_cov <- glmer(rq3_4_cov_formula, data = dASD4_cov,
+                     family = binomial, control = ctrl)
+  fmt_table(as.data.frame(round(summary(rq3_4_cov)$coefficients, 3)) %>%
+       rownames_to_column("Term") %>%
+       rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+     caption = sprintf(
+       "RQ3: 4-subscale + covariates (%s; n = %d Autistic children)",
+       paste(cov4_vars, collapse = ", "), n_distinct(dASD4_cov$pid)))
+}
+
+# ── 5-subscale model: engagement only ────────────────────────────────────────
+dASD5 <- asd_base %>%
+  filter(complete.cases(pick(Proximity,Touch,Communication,Eye,Emotion))) %>%
+  mutate(across(c(Proximity,Touch,Communication,Eye,Emotion), scale_var, .names = "z_{.col}"))
+cat("RQ3 5-subscale (no covariates): N kids =", n_distinct(dASD5$pid),
+    "| N trials =", nrow(dASD5), "\n")
+
+rq3_5 <- glmer(correct ~ z_Proximity + z_Touch + z_Communication + z_Eye + z_Emotion +
+                 (1|pid), data = dASD5, family = binomial, control = ctrl)
+fmt_table(as.data.frame(round(summary(rq3_5)$coefficients, 3)) %>%
+     rownames_to_column("Term") %>%
+     rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+   caption = sprintf("RQ3: GLMM engagement → word learning in ASD, 5-subscale (n = %d children)",
+                   n_distinct(dASD5$pid)))
+
+# ── 5-subscale model: engagement + retained covariates (if any passed screening)
+if (length(sig_covs_any) == 0) {
+  cat("NOTE: No covariates passed screening — 5-subscale covariate model not fitted.\n")
+  dASD5_cov <- NULL
+} else {
+  eng5_vars  <- c("Proximity","Touch","Communication","Eye","Emotion")
+  cov5_vars  <- sig_covs_any
+  all5_vars  <- c(eng5_vars, cov5_vars)
+  z5_cov     <- paste0("z_", cov5_vars)
+  dASD5_cov  <- asd_base %>%
+    filter(complete.cases(pick(all_of(all5_vars)))) %>%
+    mutate(across(all_of(all5_vars), scale_var, .names = "z_{.col}"))
+  cat("RQ3 5-subscale (with covariates:", paste(cov5_vars, collapse = ", "),
+      "): N kids =", n_distinct(dASD5_cov$pid),
+      "| N trials =", nrow(dASD5_cov), "\n")
+  rq3_5_cov_formula <- reformulate(
+    c(z5_cov, "z_Proximity","z_Touch","z_Communication","z_Eye","z_Emotion","(1|pid)"),
+    response = "correct")
+  rq3_5_cov <- glmer(rq3_5_cov_formula, data = dASD5_cov,
+                     family = binomial, control = ctrl)
+  fmt_table(as.data.frame(round(summary(rq3_5_cov)$coefficients, 3)) %>%
+       rownames_to_column("Term") %>%
+       rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+     caption = sprintf(
+       "RQ3: 5-subscale + covariates (%s; n = %d Autistic children)",
+       paste(cov5_vars, collapse = ", "), n_distinct(dASD5_cov$pid)))
+}
+```
+
+**Note on covariates:** Covariates (Age, ADOS comparison score, Verbal DQ) were included in adjusted models only if they showed a significant Pearson correlation (*p* < .05) with word learning accuracy and/or any engagement channel predictor in the pre-analysis screening (Section 7.1.5). Covariates that did not pass screening were excluded to avoid overfitting, given the small Autistic subsample. Retained covariates were *z*-scored. Sample sizes for covariate models are reduced relative to engagement-only models due to listwise deletion on covariates (ADOS and DQ have missing data in ~35% of the Autistic sample).
+
+**Result:** See model tables above. Engagement-only results are reported as primary analyses; covariate-adjusted models are reported for transparency.
+
+**In plain language:** Within the autistic group, we asked whether the children who engaged more with the robot (sat closer, touched it, communicated with it, looked at it, showed more positive emotion) also learned more words. None of the five engagement channels reliably predicted learning. A child who watched quietly from a distance was about as likely to learn the words as one who was highly interactive. Whatever supported learning here, it was not captured by how outwardly engaged a child looked.
+
+**Random effects variance components — RQ3 models:**
+
+```{r rq3-random-effects, results = "markup", echo = TRUE}
+vc_tab <- bind_rows(
+  as.data.frame(VarCorr(rq3_4)) %>% mutate(Model = "4-subscale", .before = 1),
+  as.data.frame(VarCorr(rq3_5)) %>% mutate(Model = "5-subscale", .before = 1)
+) %>% select(Model, grp, var1, vcov, sdcor) %>%
+  rename(Grouping = grp, Term = var1, Variance = vcov, SD = sdcor)
+
+fmt_table(vc_tab, caption = "RQ3: Random effects variance components for 4- and 5-subscale GLMMs (NA in Term = residual variance estimate on latent scale)")
+```
+
+```{r fig8-engagement-scatter, fig.width = 11, fig.height = 4, echo = TRUE}
+asd_scatter <- base %>%
+  filter(group == "Autistic") %>%
+  group_by(pid) %>%
+  summarise(accuracy = mean(correct, na.rm = TRUE), .groups = "drop") %>%
+  left_join(
+    .remap(read_csv(here("engagement_overall_means.csv"), show_col_types = FALSE)) %>%
+      mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic")) %>%
+      filter(group == "Autistic"),
+    by = "pid"
+  ) %>%
+  pivot_longer(all_of(measures), names_to = "channel", values_to = "engagement") %>%
+  mutate(channel = factor(channel, levels = measures))
+
+ggplot(asd_scatter, aes(x = engagement, y = accuracy)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey60", linewidth = 0.5) +
+  geom_point(colour = "#E07B54", alpha = 0.6, size = 2) +
+  geom_smooth(method = "loess", se = TRUE, colour = "grey30",
+              fill = "grey80", linewidth = 0.8) +
+  scale_y_continuous(limits = c(0, 1), labels = scales::percent_format()) +
+  facet_wrap(~channel, nrow = 1, scales = "free_x") +
+  labs(title = "Engagement and Word Learning Accuracy (Autistic Children)",
+       x = "Mean Engagement Score", y = "Proportion Correct") +
+  theme_pub
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig5_engagement_scatter.png", last_plot(), width = 11, height = 4, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig5_engagement_scatter.pdf", last_plot(), width = 11, height = 4, bg = "white"), silent = TRUE)
+```
+
+## 7.6 Secondary: Story Engagement → Word Learning (Autistic Females Only)
+
+> **Scope limitation:** The "Autistic Male" sheet of the raw coding file uses a different layout and lacks story engagement columns (visual attention length, story duration). This secondary model is therefore restricted to **female Autistic participants only**. Results should not be generalised to the full Autistic sample. This limitation should be disclosed explicitly in the manuscript.
+
+```{r rq3-story-engagement, results = "markup", echo = TRUE}
+# ── Extract story data from raw Excel files ───────────────────────────────────
+# ASD: "Autistic Female" sheet of ASD_EngagementCodingRAW_Full.xlsx
+#   col 68 = Story Visual Attention Length (sec)
+#   col 69 = Story Duration (sec)
+#   NOTE: "Autistic Male" sheet uses a different coding format and lacks story columns.
+#   Story engagement model is therefore limited to female ASD participants.
+#
+# NT:  NT_Engagement_SecondaryCoder_raw.xlsx
+#   col 59 = Story Visual Attention Length (sec)
+#   col 60 = Story Duration (sec)
+#
+# In both files the story values sit in the participant HEADER ROW
+# (the row where col 1 matches "^P\d{3}$").
+#
+# story_engagement = visual_attention_sec / story_duration_sec  (proportion 0–1)
+
+# ── ASD females ───────────────────────────────────────────────────────────────
+asd_xl      <- suppressMessages(
+  read_excel(here("R Formatted/ASD_EngagementCodingRAW_Full.xlsx"),
+             sheet = "Autistic Female", col_names = FALSE, .name_repair = "minimal")
+)
+asd_pid_col  <- as.character(asd_xl[[1]])
+asd_pid_rows <- which(grepl("^P\\d{3}$", asd_pid_col))
+
+story_asd <- bind_rows(lapply(asd_pid_rows, function(r) {
+  data.frame(
+    pid = as.integer(sub("^P0*", "", asd_pid_col[r])),
+    visual_att_sec = suppressWarnings(as.numeric(as.character(asd_xl[[68]][r]))),
+    duration_sec = suppressWarnings(as.numeric(as.character(asd_xl[[69]][r]))),
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  filter(!is.na(visual_att_sec), !is.na(duration_sec), duration_sec > 0) %>%
+  mutate(story_engagement = visual_att_sec / duration_sec)
+story_asd <- .remap(story_asd)
+
+cat("ASD story data (females only): n =", nrow(story_asd), "participants\n")
+
+# ── NT ────────────────────────────────────────────────────────────────────────
+nt_xl      <- suppressMessages(
+  read_excel(here("R Formatted/NT_Engagement_SecondaryCoder_raw.xlsx"),
+             col_names = FALSE, .name_repair = "minimal")
+)
+nt_pid_col  <- as.character(nt_xl[[1]])
+nt_pid_rows <- which(grepl("^P\\d{3}$", nt_pid_col))
+
+story_nt <- bind_rows(lapply(nt_pid_rows, function(r) {
+  data.frame(
+    pid = 2000L + as.integer(sub("^P0*", "", nt_pid_col[r])),
+    visual_att_sec = suppressWarnings(as.numeric(as.character(nt_xl[[59]][r]))),
+    duration_sec = suppressWarnings(as.numeric(as.character(nt_xl[[60]][r]))),
+    stringsAsFactors = FALSE
+  )
+})) %>%
+  filter(!is.na(visual_att_sec), !is.na(duration_sec), duration_sec > 0) %>%
+  mutate(story_engagement = visual_att_sec / duration_sec)
+story_nt <- .remap(story_nt)
+
+cat("NT story data: n =", nrow(story_nt), "participants\n")
+
+# ── Descriptives ──────────────────────────────────────────────────────────────
+story_all <- bind_rows(
+  story_asd %>% mutate(group = "Autistic"),
+  story_nt  %>% mutate(group = "Non-autistic")
+)
+
+fmt_table(story_all %>%
+     group_by(group) %>%
+     summarise(
+       N = n(),
+       `Visual attention (sec): M (SD)` = sprintf("%.1f (%.1f)", mean(visual_att_sec), sd(visual_att_sec)),
+       `Story duration (sec): M (SD)` = sprintf("%.1f (%.1f)", mean(duration_sec), sd(duration_sec)),
+       `Story engagement (prop): M (SD)` = sprintf("%.2f (%.2f)", mean(story_engagement), sd(story_engagement)),
+       .groups = "drop"
+     ),
+   caption = "Story engagement descriptives (story_engagement = visual attention sec / story duration sec)")
+
+# ── Secondary model: story engagement → word learning (ASD only) ──────────────
+asd_story <- base %>%
+  filter(group == "Autistic") %>%
+  left_join(story_asd %>% select(pid, story_engagement), by = "pid") %>%
+  filter(!is.na(story_engagement)) %>%
+  mutate(z_story = scale_var(story_engagement))
+
+cat("Story engagement model: N kids =", n_distinct(asd_story$pid),
+    "| N trials =", nrow(asd_story), "\n")
+cat("Note: ASD story model restricted to female participants (male sheet lacks story columns)\n")
+
+if (n_distinct(asd_story$pid) < 3) {
+  cat("NOTE: Too few ASD participants with both story engagement and word learning data to fit model.\n")
+} else {
+  rq3_story <- glmer(correct ~ z_story + (1|pid),
+                     data = asd_story, family = binomial, control = ctrl)
+
+  fmt_table(as.data.frame(round(summary(rq3_story)$coefficients, 3)) %>%
+       rownames_to_column("Term") %>%
+       rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+     caption = sprintf("Secondary: Story engagement → word learning, Autistic females only (n = %d children, %d trials)",
+                       n_distinct(asd_story$pid), nrow(asd_story)))
+}
+```
+
+## 7.7 Group × Engagement Interactions
+
+To examine whether engagement channels predict word learning *differently* by group, interaction models were fitted on the combined sample. Two models were run:
+
+- **Model A:** 4 subscales (no Touch; n reported in model output below)
+- **Model B:** 5 subscales (with Touch; n reported in model output below)
+
+```{r interaction-models, results = "markup", echo = TRUE}
+base_nt_ref2 <- base %>% mutate(group = factor(group, levels = c("Non-autistic","Autistic")))
+
+# Model A: 4 subscales
+dA <- base_nt_ref2 %>%
+  filter(complete.cases(pick(Proximity,Communication,Eye,Emotion))) %>%
+  mutate(across(c(Proximity,Communication,Eye,Emotion), scale_var, .names = "z_{.col}"))
+cat("Model A: N kids =", n_distinct(dA$pid), "| N trials =", nrow(dA), "\n")
+
+mA_main <- glmer(correct ~ group + z_Proximity + z_Communication +
+                   z_Eye + z_Emotion + (1|pid),
+                 data = dA, family = binomial, control = ctrl)
+
+mA_int  <- glmer(correct ~ group*(z_Proximity + z_Communication + z_Eye + z_Emotion) +
+                   (1|pid),
+                 data = dA, family = binomial, control = ctrl)
+
+anova_A <- as.data.frame(anova(mA_main, mA_int)) %>%
+  rownames_to_column("Model") %>%
+  mutate(Model = c("Main effects", "Interactions"))
+fmt_table(anova_A, caption = "Model comparison: main effects vs interactions, 4-subscale model (Model A)")
+
+# Model B: 5 subscales with Touch
+dB <- base_nt_ref2 %>%
+  filter(complete.cases(pick(Proximity,Touch,Communication,Eye,Emotion))) %>%
+  mutate(across(c(Proximity,Touch,Communication,Eye,Emotion), scale_var, .names = "z_{.col}"))
+cat("Model B: N kids =", n_distinct(dB$pid), "| N trials =", nrow(dB), "\n")
+
+mB <- glmer(correct ~ group*(z_Proximity+z_Touch+z_Communication+z_Eye+z_Emotion) +
+              (1|pid),
+            data = dB, family = binomial, control = ctrl)
+
+fmt_table(as.data.frame(round(summary(mB)$coefficients, 3)) %>%
+     rownames_to_column("Term") %>%
+     rename(b = Estimate, SE = `Std. Error`, z = `z value`, p = `Pr(>|z|)`),
+   caption = sprintf("Model B: Group × engagement interactions on word learning (n = %d children)",
+                   n_distinct(dB$pid)))
+```
+
+**Result:** Adding interactions did not improve model fit for the 4-subscale model (χ² = 1.70, *p* = .79). In Model B, a significant group × Touch interaction emerged (*b* = –0.72, *SE* = 0.31, *z* = –2.34, *p* = .019). Group-specific simple slopes for Touch (computed via `emmeans::emtrends`, table below) showed Touch was positively associated with word learning in NT children (*b* = 0.47, *SE* = 0.24, *z* = 1.94, *p* = .052) but the slope reversed in ASD children (*b* = –0.25, *SE* = 0.19, *z* = –1.32, *p* = .189). The interaction is significant and indicates reliably different Touch–learning associations between groups, but the ASD slope itself is not significant on its own and should be interpreted with caution given *n* = 55 children (ASD = 20, NT = 35).
+
+```{r modelB-emtrends, echo = TRUE}
+if (requireNamespace("emmeans", quietly = TRUE)) {
+  emtr <- emmeans::emtrends(mB, ~ group, var = "z_Touch",
+                            infer = c(TRUE, TRUE))
+  fmt_table(as.data.frame(emtr) %>%
+              rename(b = z_Touch.trend,
+                     `95% LCL` = asymp.LCL, `95% UCL` = asymp.UCL,
+                     z = z.ratio, p = p.value) %>%
+              mutate(across(where(is.numeric), \(x) round(x, 3))),
+            caption = "Model B: Group-specific simple slopes for Touch (emtrends)")
+}
+```
+
+**In plain language:** One unexpected pattern turned up. Among non-autistic children, touching the robot more went along with better word learning. Among autistic children, the trend pointed the other way. The difference between those two patterns is statistically reliable, but the autistic trend on its own is not, and this analysis comes from a smaller subsample (55 children) and was not predicted in advance. Treat it as a lead worth following up, not a finding to build on. One possibility worth testing is that touch means different things in each group, social play for one child and sensory exploration for another.
+
+### Random Slopes Check
+
+```{r random-slopes-check, results = "markup", echo = TRUE}
+# Test whether random slopes improve fit (uncorrelated, all 5 measures)
+mB_rs <- tryCatch(
+  glmer(correct ~ group*(z_Proximity+z_Touch+z_Communication+z_Eye+z_Emotion) +
+          (1 + z_Proximity+z_Touch+z_Communication+z_Eye+z_Emotion || pid),
+        data = dB, family = binomial, control = ctrl),
+  error = function(e) NULL)
+
+if (!is.null(mB_rs)) {
+  fmt_table(as.data.frame(anova(mB, mB_rs)) %>% rownames_to_column("Model") %>%
+       mutate(Model = c("Random intercepts only", "Random slopes")),
+     caption = "Random slopes model comparison")
+  fmt_table(as.data.frame(VarCorr(mB_rs)) %>% select(grp, var1, vcov, sdcor) %>%
+       rename(Group = grp, Variable = var1, Variance = vcov, SD = sdcor),
+     caption = "Random effect variances (random slopes model)")
+}
+```
+
+**Result:** Random slopes did not improve model fit (χ² = 0.23, *p* = .999) and all slope variances collapsed to zero, indicating that the effect of engagement on word learning does not meaningfully vary across individual children beyond what group membership explains. The random intercept-only structure is retained.
+
+## 7.8 Visualisation — Group × Touch Interaction
+
+```{r plot3-touch-interaction, fig.width = 8, fig.height = 5, echo = TRUE}
+# Predicted probabilities with 95% CI (delta method)
+touch_mean <- mean(dB$Touch, na.rm = TRUE)
+touch_sd   <- sd(dB$Touch,   na.rm = TRUE)
+
+grp_levels <- levels(factor(dB$group))
+
+pred_data <- expand.grid(
+  z_Touch = seq(-2.5, 2.5, length.out = 100),
+  group = factor(grp_levels, levels = grp_levels)
+) %>% mutate(
+  z_Proximity = 0,
+  z_Communication = 0,
+  z_Eye = 0,
+  z_Emotion = 0,
+  pid = NA_real_,
+  Touch_raw = z_Touch * touch_sd + touch_mean
+)
+
+# Use terms(mB) so the model matrix columns are guaranteed to match fixef(mB)
+mm <- model.matrix(delete.response(terms(mB)), data = pred_data)
+mm <- mm[, names(fixef(mB)), drop = FALSE]
+
+pred_data$logit <- as.numeric(mm %*% fixef(mB))
+pred_data$se    <- sqrt(diag(mm %*% as.matrix(vcov(mB)) %*% t(mm)))
+pred_data <- pred_data %>%
+  mutate(prob = plogis(logit),
+         lower = plogis(logit - 1.96*se),
+         upper = plogis(logit + 1.96*se))
+
+ggplot(pred_data, aes(x = Touch_raw, y = prob, colour = group, fill = group)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.15, colour = NA) +
+  geom_line(linewidth = 1.2) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", colour = "grey40", linewidth = 0.7) +
+  annotate("text", x = 0.6, y = 0.515, label = "Chance", size = 3.5, colour = "grey40") +
+  scale_colour_manual(values = pal, name = "Group") +
+  scale_fill_manual(values = pal, name = "Group") +
+  scale_y_continuous(limits = c(0,1), labels = percent_format()) +
+  labs(title = "Predicted Word Learning by Touch Engagement and Group",
+       caption = "Other engagement channels held at mean; word type = POK; shading = 95% CI",
+       x = "Touch Score (raw units)", y = "Predicted Probability Correct") +
+  theme_pub +
+  theme(plot.caption = element_text(size = 9, colour = "grey40"))
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig6_touch_interaction.png", last_plot(), width = 8, height = 5, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig6_touch_interaction.pdf", last_plot(), width = 8, height = 5, bg = "white"), silent = TRUE)
+```
+
+---
+
+# 8. RQ4 — Group Differences in Engagement
+
+```{r consort-rq4, echo = TRUE, fig.width = 8, fig.height = 4.2}
+rq_consort(list(
+  list(type = "in", label = "Enrolled\nn = 97  (Autistic = 59, Non-autistic = 38)"),
+  list(type = "ex", label = "Excluded (engagement): n = 10\nAll/most data missing"),
+  list(type = "in", label = "Engagement analysis sample\nn = 87  (Autistic = 51, Non-autistic = 36)"),
+  list(type = "ex", label = paste0(
+    "Asked not to touch: n = 21  (Autistic = 20, Non-autistic = 1)\n",
+    "Session truncated at touch-instruction interval\n",
+    "for ALL channels — pre-instruction data retained;\n",
+    "Touch channel excluded entirely for these children")),
+  list(type = "in", label = paste0(
+    "RQ4 Analysis\n",
+    "4-channel model (Proximity/Communication/Eye/Emotion):\n",
+    "  n = 87  (A = 51, NA = 36)\n",
+    "  [21 no-touch children contribute pre-instruction data only]\n",
+    "Touch channel model:\n",
+    "  n = 66  (A = 31, NA = 35)"))
+), title = "RQ4 — Participant Flow: Engagement Group Comparisons")
+```
+
+*Do autistic and non-autistic children differ in their engagement with the robot (overall and by channel)?*
+
+## 8.1 Descriptives
+
+```{r rq4-descriptives, echo = TRUE}
+means <- .remap(read_csv(here("engagement_overall_means.csv"), show_col_types = FALSE)) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"),
+         group = factor(group, levels = c("Autistic","Non-autistic")))
+
+desc <- means %>%
+  group_by(group) %>%
+  summarise(N = n(), across(all_of(measures),
+    list(M = ~round(mean(.,na.rm = TRUE),2), SD = ~round(sd(.,na.rm = TRUE),2)),
+    .names = "{.col}_{.fn}"))
+
+asd_row <- as.list(desc[desc$group=="Autistic", ])
+nt_row  <- as.list(desc[desc$group=="Non-autistic",  ])
+
+desc_long <- bind_rows(lapply(measures, function(m) {
+  data.frame(
+    Measure = m,
+    `ASD M (SD)` = paste0(asd_row[[paste0(m,"_M")]], " (", asd_row[[paste0(m,"_SD")]], ")"),
+    `NT M (SD)` = paste0(nt_row[[paste0(m,"_M")]],  " (", nt_row[[paste0(m,"_SD")]],  ")"),
+    check.names = FALSE
+  )
+}))
+
+fmt_table(desc_long, caption = sprintf("Descriptives by group (ASD n = %d, NT n = %d)",
+                               asd_row$N, nt_row$N))
+```
+
+## 8.2 Mixed Models: Engagement ~ Group
+
+Linear mixed models were fitted for each engagement channel with group (Non-autistic reference) as the fixed effect and random intercepts for child. Models were fitted on the cleaned interval-level data.
+
+> **Sample size note — 4-channel vs Touch model:**
+> The four channels Proximity, Communication, Eye Contact, and Emotion are modelled on the **full engagement sample (n = 87; Autistic = 51, Non-autistic = 36)**. This is valid because the data-cleaning pipeline applied a **global session cutpoint** to all 21 children who were asked not to touch: every channel's data was truncated at the interval where the touch instruction occurred, so post-instruction intervals contribute to *no* channel — including Proximity, Communication, Eye, and Emotion. The **Touch model uses the Touch-valid subset only (n = 66)**, as no touch scores exist after truncation. See Section 4.3–4.4 and the touch-cutpoint verification table for confirmation.
+
+```{r rq4-models, results = "markup", echo = TRUE}
+d_cleaned <- .remap(read_csv(here("engagement_cleaned_intervals.csv"), show_col_types = FALSE)) %>%
+  mutate(group = recode(group, "NT" = "Non-autistic", "ASD" = "Autistic"),
+         group = factor(group, levels = c("Non-autistic","Autistic")))
+
+rq4_results <- lapply(measures, function(m) {
+  dat <- d_cleaned %>% filter(!is.na(.data[[m]]))
+  mod <- lmer(reformulate("group + (1|pid)", response = m), data = dat, REML = FALSE)
+  cf  <- coef(summary(mod))["groupAutistic",]
+  vc  <- as.data.frame(VarCorr(mod))
+  icc <- vc$vcov[1] / sum(vc$vcov)
+
+  nt_vals  <- means %>% filter(group=="Non-autistic")  %>% pull(m) %>% na.omit()
+  asd_vals <- means %>% filter(group=="Autistic") %>% pull(m) %>% na.omit()
+  pool_sd  <- sqrt((var(nt_vals)*(length(nt_vals)-1) + var(asd_vals)*(length(asd_vals)-1)) /
+                   (length(nt_vals)+length(asd_vals)-2))
+  d_cohen  <- (mean(asd_vals)-mean(nt_vals)) / pool_sd
+
+  data.frame(Measure = m, b = round(cf["Estimate"],3), SE = round(cf["Std. Error"],3),
+             t = round(cf["t value"],2), p_raw = as.numeric(cf["Pr(>|t|)"]),
+             d = round(d_cohen,2), ICC = round(icc,3))
+}) %>% bind_rows() %>%
+  mutate(
+    sig = ifelse(p_raw < .001, "***", ifelse(p_raw < .01, "**", ifelse(p_raw < .05, "*", "ns"))),
+    p   = fmt_p(p_raw)
+  )
+
+fmt_table(rq4_results,
+   caption = "RQ4: Group differences in engagement (linear mixed models, interval-level data)")
+
+# Random effects variance-covariance for each channel
+rq4_vc <- lapply(measures, function(m) {
+  dat <- d_cleaned %>% filter(!is.na(.data[[m]]))
+  mod <- lmer(reformulate("group + (1|pid)", response = m), data = dat, REML = FALSE)
+  vc  <- as.data.frame(VarCorr(mod)) %>%
+    select(grp, var1, vcov, sdcor) %>%
+    mutate(Measure = m, .before = 1)
+}) %>% bind_rows()
+
+fmt_table(rq4_vc %>% rename(Group = grp, Term = var1, Variance = vcov, SD = sdcor),
+   caption = "RQ4: Random effects variance components for each engagement LMM (grp = grouping factor, NA in Term = residual)")
+```
+
+## 8.3 Visualisation
+
+```{r plot2-engagement, fig.width = 11, fig.height = 5, echo = TRUE}
+eng_long <- means %>%
+  pivot_longer(all_of(measures), names_to = "channel", values_to = "score") %>%
+  mutate(channel = factor(channel, levels = measures))
+
+eng_sum <- eng_long %>%
+  group_by(group, channel) %>%
+  summarise(M = mean(score, na.rm = TRUE),
+            SE = sd(score, na.rm = TRUE) / sqrt(sum(!is.na(score))),
+            .groups = "drop")
+
+sig_df <- eng_sum %>%
+  group_by(channel) %>%
+  summarise(y_pos = max(M+SE, na.rm = TRUE) + 0.25, .groups = "drop") %>%
+  left_join(
+    rq4_results %>%
+      mutate(channel = Measure,
+             label = case_when(
+               p_raw < .001 ~ "***",
+               p_raw < .01  ~ "**",
+               p_raw < .05  ~ "*",
+               TRUE         ~ paste0("ns (p=", fmt_p(p_raw), ")")
+             )) %>%
+      select(channel, label),
+    by = "channel"
+  )
+
+ggplot(eng_long, aes(x = channel, y = score, fill = group, colour = group)) +
+  ggdist::stat_halfeye(
+    aes(fill = group),
+    adjust = 0.5, width = 0.4, justification = -0.2,
+    .width = 0, point_colour = NA, alpha = 0.7,
+    position = position_dodge(0.7)
+  ) +
+  geom_boxplot(
+    width = 0.12, outlier.shape = NA,
+    position = position_dodge(0.7),
+    colour = "grey30", fill = "white", linewidth = 0.5
+  ) +
+  ggbeeswarm::geom_beeswarm(
+    aes(colour = group),
+    dodge.width = 0.7, size = 1.4, alpha = 0.45,
+    cex = 1.5, na.rm = TRUE
+  ) +
+  geom_text(data = sig_df,
+            aes(x = as.numeric(channel), y = y_pos, label = label),
+            inherit.aes = FALSE, size = 3.5) +
+  scale_fill_manual(values = pal, name = "Group") +
+  scale_colour_manual(values = pal, name = "Group") +
+  labs(title = "Engagement with Robot by Group and Channel",
+       x = "Engagement Channel", y = "Mean Score") +
+  theme_pub
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/fig7_engagement_groups.png", last_plot(), width = 11, height = 5, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/fig7_engagement_groups.pdf", last_plot(), width = 11, height = 5, bg = "white"), silent = TRUE)
+```
+
+**Interpretation:** Autistic children showed significantly lower Communication (*b* = –0.70, *p* < .001, *d* = –0.99) and Eye contact (*b* = –0.84, *p* < .001, *d* = –1.03) than neurotypical children. Proximity, Touch, and Emotion did not significantly differ, though Touch trended (*p* = .074, *d* = –0.45; note reduced ASD *n* due to Touch exclusions).
+
+**In plain language:** The groups engaged with the robot differently in some channels but not others. Autistic children communicated with the robot less and looked at it less, and these were large, reliable differences. But they sat just as close, touched it about as much, and showed similar positive emotion, and the Bayesian checks (Section 9.2) actively supported "no difference" on those three channels. The differences were specific to the classic social-communication behaviours, not a lower level of interest in the robot overall. And as RQ1 to RQ3 show, lower outward engagement did not cost autistic children learning.
+
+---
+
+# 9. Bayesian Sensitivity Analyses
+
+Bayesian sensitivity analyses were conducted for the three primary null findings using the `BayesFactor` package (Morey & Rouder, 2018). These are **child-level analyses** (one observation per child, using per-child means), and should be interpreted as sensitivity checks rather than direct replications of the mixed models in Sections 5–6, which used interval-level data. The child-level approach is more conservative (smaller effective *N*) and does not account for the nested structure of trials, but provides a useful prior-informed complement to the frequentist results.
+
+**Prior distributions:** Bayesian *t*-tests used a Cauchy prior on standardised effect size (*r* = √2/2 ≈ 0.707; Rouder et al., 2009). This prior places approximately 50% probability on effect sizes smaller than ±0.707 and 50% on larger effects, reflecting agnosticism about direction and magnitude. Bayesian correlation tests used a stretched beta prior on *ρ* with *κ* = 1 (Ly et al., 2016), the `BayesFactor` default, which is uniform on the correlation scale.
+
+**Model comparison:** Each test compares two models — H₀ (null model: no effect) versus H₁ (alternative model: non-zero effect). Bayes Factors quantify the relative predictive adequacy of each model given the observed data.
+
+**BF interpretation framework:** Bayes Factors are reported as BF₀₁ (evidence for H₀ over H₁). Following Jeffreys (1961) as adapted by Lee & Wagenmakers (2013): BF₀₁ > 10 = strong evidence for null; 3–10 = moderate; 1–3 = anecdotal; BF₀₁ = 1 = no evidence either way; BF₀₁ < 1 = evidence favouring H₁. Results in the anecdotal range (1–3) are interpreted cautiously as they are sensitive to prior choice, which is why prior sensitivity analyses are reported.
+
+**Prior sensitivity:** All tests were re-run with *r* = 0.5 (conservative) and *r* = 1.0 (liberal) for *t*-tests, and *κ* = 3 for correlations. Stability of BF₀₁ category across prior specifications is reported in each table.
+
+**Posterior distributions:** The `BayesFactor` package uses a sampling-based approach that does not readily yield full posterior distributions for the parameters of interest. Posterior means and credible intervals are therefore not reported here. Full posterior inference would require a Stan-based implementation, which could not be executed due to a software compatibility issue with the current operating system.
+
+```{r bayes-setup, echo = FALSE}
+# Per-child word learning accuracy (≥4/12 threshold already applied upstream)
+acc_child <- base %>%
+  group_by(pid, group) %>%
+  summarise(accuracy = mean(correct, na.rm = TRUE), .groups = "drop")
+
+# Per-child engagement means (join group from acc_child)
+eng <- .remap(read_csv(here("engagement_overall_means.csv"), show_col_types = FALSE)) %>%
+  select(-any_of("group"))
+
+bay_dat <- acc_child %>%
+  left_join(eng, by = "pid")
+
+asd_bay <- bay_dat %>% filter(group=="Autistic")
+nt_bay  <- bay_dat %>% filter(group=="Non-autistic")
+
+bf_evidence <- function(bf01) {
+  ifelse(bf01 > 10, "Strong null",
+  ifelse(bf01 > 3,  "Moderate null",
+  ifelse(bf01 > 1,  "Anecdotal null", "Favours H1")))
+}
+
+# Helper: Welch t-test + ttestBF at three rscale values
+bayes_ttest <- function(x, y, label) {
+  x  <- x[!is.na(x) & is.finite(x)]
+  y  <- y[!is.na(y) & is.finite(y)]
+  tt <- t.test(x, y)
+  d  <- (mean(x) - mean(y)) / sqrt((sd(x)^2 + sd(y)^2) / 2)
+  bf_default <- 1 / as.vector(ttestBF(x = x, y = y, rscale = sqrt(2)/2))
+  bf_cons    <- 1 / as.vector(ttestBF(x = x, y = y, rscale = 0.5))
+  bf_lib     <- 1 / as.vector(ttestBF(x = x, y = y, rscale = 1.0))
+  data.frame(
+    Comparison = label,
+    `M ASD` = round(mean(x), 3),
+    `M NT` = round(mean(y), 3),
+    `n ASD` = length(x),
+    `n NT` = length(y),
+    t = round(tt$statistic, 3),
+    df = round(tt$parameter, 1),
+    p = fmt_p(tt$p.value),
+    d = round(d, 3),
+    `BF01 (r = 0.71)` = round(bf_default, 3),
+    `BF01 (r = 0.50)` = round(bf_cons,    3),
+    `BF01 (r = 1.00)` = round(bf_lib,     3),
+    Evidence = bf_evidence(bf_default),
+    check.names = FALSE
+  )
+}
+
+# Helper: Pearson correlation + correlationBF at two kappa values
+bayes_cor <- function(x, y, label) {
+  ok <- complete.cases(x, y)
+  x  <- x[ok]; y <- y[ok]
+  ct <- cor.test(x, y)
+  bf_k1 <- 1 / as.vector(correlationBF(x, y, kappa = 1))
+  bf_k3 <- 1 / as.vector(correlationBF(x, y, kappa = 3))
+  data.frame(
+    Channel = label,
+    n = length(x),
+    r = round(ct$estimate, 3),
+    p = fmt_p(ct$p.value),
+    `BF01 (k = 1)` = round(bf_k1, 3),
+    `BF01 (k = 3)` = round(bf_k3, 3),
+    Evidence = bf_evidence(bf_k1),
+    check.names = FALSE
+  )
+}
+```
+
+## 9.1 RQ2 — Group Difference in Word Learning
+
+Per-child accuracy compared between ASD and NT using a Welch *t*-test and Bayesian *t*-test.
+
+```{r bayes-rq2, results = "markup", echo = TRUE}
+rq2_bay <- bayes_ttest(
+  x = asd_bay$accuracy,
+  y = nt_bay$accuracy,
+  label = "Word learning accuracy (ASD vs NT)"
+)
+fmt_table(rq2_bay, caption = "RQ2 Bayesian sensitivity: group difference in word learning accuracy (per-child). BF01 reported at three rscale values.")
+```
+
+## 9.2 RQ4 — Non-Significant Engagement Channels
+
+Per-child engagement means compared between groups for Proximity, Touch, and Emotion.
+
+```{r bayes-rq4, results = "markup", echo = TRUE}
+rq4_bay <- bind_rows(
+  bayes_ttest(asd_bay$Proximity, nt_bay$Proximity, "Proximity"),
+  bayes_ttest(asd_bay$Touch, nt_bay$Touch, "Touch"),
+  bayes_ttest(asd_bay$Emotion, nt_bay$Emotion, "Emotion")
+) %>% rename(Channel = Comparison)
+
+fmt_table(rq4_bay, caption = "RQ4 Bayesian sensitivity: group differences in engagement (per-child means). BF01 at three rscale values; Evidence column uses default r=0.71.")
+```
+
+## 9.3 RQ3 — Engagement Predicting Word Learning in ASD
+
+Pearson correlations and Bayesian correlation tests between per-child engagement means and word learning accuracy in ASD children.
+
+```{r bayes-rq3, results = "markup", echo = TRUE}
+channels_bay <- c("Proximity","Communication","Eye","Emotion","Touch")
+
+rq3_bay <- bind_rows(lapply(channels_bay, function(ch)
+  bayes_cor(asd_bay[[ch]], asd_bay$accuracy, ch)
+))
+
+fmt_table(rq3_bay, caption = "RQ3 Bayesian sensitivity: engagement ~ word learning correlations in ASD (per-child). BF01 at kappa=1 (default) and kappa=3; Evidence column uses kappa=1.")
+```
+
+## 9.4 BF Evidence Plot
+
+```{r bayes-bf-plot, fig.width = 9, fig.height = 5.5, echo = TRUE}
+bf_plot_dat <- bind_rows(
+  rq2_bay %>% transmute(Label = "Word learning\n(ASD vs NT)", RQ = "RQ2", BF01 = `BF01 (r = 0.71)`),
+  rq4_bay %>% transmute(Label = Channel, RQ = "RQ4", BF01 = `BF01 (r = 0.71)`),
+  rq3_bay %>% transmute(Label = Channel, RQ = "RQ3", BF01 = `BF01 (k = 1)`)
+) %>%
+  mutate(
+    Label = factor(Label, levels = rev(unique(Label))),
+    Evidence = ifelse(BF01 > 10, "Strong null",
+               ifelse(BF01 > 3,  "Moderate null",
+               ifelse(BF01 > 1,  "Anecdotal null", "Favours H1"))),
+    Evidence = factor(Evidence,
+                      levels = c("Strong null","Moderate null","Anecdotal null","Favours H1"))
+  )
+
+pal_bf <- c("Strong null" = "#2166ac","Moderate null" = "#74add1",
+            "Anecdotal null" = "#fdae61","Favours H1" = "#d73027")
+
+ggplot(bf_plot_dat, aes(x = log10(BF01), y = Label, fill = Evidence)) +
+  geom_col(width = 0.6) +
+  geom_vline(xintercept = 0,    linetype = "solid",  colour = "grey20", linewidth = 0.5) +
+  geom_vline(xintercept = log10(3),  linetype = "dashed", colour = "grey50", linewidth = 0.4) +
+  geom_vline(xintercept = log10(10), linetype = "dashed", colour = "grey50", linewidth = 0.4) +
+  geom_vline(xintercept = -log10(3), linetype = "dashed", colour = "grey50", linewidth = 0.4) +
+  geom_text(aes(label = sprintf("BF01=%.2f", BF01)),
+            x = 0, hjust = -0.1, size = 2.8, colour = "grey20") +
+  scale_fill_manual(values = pal_bf, name = "Evidence") +
+  facet_grid(RQ~., scales = "free_y", space = "free_y") +
+  labs(title = "Bayesian Sensitivity: Evidence for Null Hypotheses",
+       x = "log10(BF01)  [favours H1 <-- 0 --> favours H0]",
+       y = NULL,
+       caption = "Dashed lines at BF01 = 3 and 10. All analyses at per-child level.") +
+  theme_pub +
+  theme(strip.text.y = element_text(angle = 0, face = "bold"),
+        panel.grid.major.y = element_blank())
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/supp_s3_bayes_bf.png", last_plot(), width = 9, height = 5.5, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/supp_s3_bayes_bf.pdf", last_plot(), width = 9, height = 5.5, bg = "white"), silent = TRUE)
+```
+
+---
+
+# 10. Summary of Findings
+
+| RQ | Finding |
+|---|---|
+| **RQ1** | See result above — GLMM intercept tests overall ASD accuracy vs 50% chance |
+| **RQ2** | No significant group difference in word learning accuracy (*p* = .264) |
+| **RQ3** | No engagement channel significantly predicted word learning in ASD alone |
+| **RQ4** | ASD < NT on Communication and Eye contact (*d* ≈ –1.0, both *p* < .001); other channels ns |
+| **Exploratory** | Significant group × Touch interaction (*p* = .019): Touch positively predicts learning in NT, negatively in ASD |
+
+**Measurement note:** Factor analysis revealed fundamentally different engagement structures in ASD vs NT children. No composite engagement scores were created; all five channels were analysed as independent subscales. The "asked not to touch" protocol introduced structured missingness in Touch, particularly in ASD children (20/51 excluded from Touch analysis).
+
+---
+
+# 11. Supplementary Figures
+
+## Supplementary Figure 1. Factor Loadings by Group
+
+```{r supp-fig1-fa-heatmap, fig.width = 9, fig.height = 4.5, echo = TRUE}
+# ASD loadings (from fa_asd5)
+asd_loadings <- as.data.frame(unclass(fa_asd5$loadings)) %>%
+  rownames_to_column("Channel") %>%
+  setNames(c("Channel", "Physical", "Social-Emotional")) %>%
+  mutate(Group = "Autistic")
+
+# NT loadings (from fa_nt5)
+nt_loadings <- as.data.frame(unclass(fa_nt5$loadings)) %>%
+  rownames_to_column("Channel") %>%
+  setNames(c("Channel", "Proximity", "Social cluster")) %>%
+  mutate(Group = "Non-autistic")
+
+# Combine for plotting — reshape to long
+fa_long <- bind_rows(
+  asd_loadings %>% pivot_longer(-c(Channel, Group), names_to = "Factor", values_to = "Loading"),
+  nt_loadings  %>% pivot_longer(-c(Channel, Group), names_to = "Factor", values_to = "Loading")
+)
+
+ggplot(fa_long, aes(x = Factor, y = Channel, fill = Loading)) +
+  geom_tile(colour = "white", linewidth = 0.5) +
+  geom_text(aes(label = sprintf("%.2f", Loading),
+                colour = abs(Loading) > 0.4), size = 3.5) +
+  scale_fill_gradient2(low = "#5B8DB8", mid = "white", high = "#E07B54",
+                       midpoint = 0, limits = c(-1, 1), name = "Loading") +
+  scale_colour_manual(values = c("TRUE" = "white", "FALSE" = "grey40"), guide = "none") +
+  facet_wrap(~Group, scales = "free_x") +
+  labs(title = "Supplementary Figure 1. Factor Loadings by Group",
+       x = NULL, y = NULL) +
+  theme_pub +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+# ── save standalone manuscript figure ─────────────────────────────────────────
+try(ggplot2::ggsave("figure/supp_s2_fa_heatmap.png", last_plot(), width = 9, height = 4.5, dpi = 300, bg = "white"), silent = TRUE)
+try(ggplot2::ggsave("figure/supp_s2_fa_heatmap.pdf", last_plot(), width = 9, height = 4.5, bg = "white"), silent = TRUE)
+```
+
+# 12. Session Info
+
+```{r session-info, echo = TRUE, results = "markup"}
+sessionInfo()
+```
+

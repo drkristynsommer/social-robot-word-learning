@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novel Word Learning from Social Robots by Autistic and Non-Autistic Children</title>
+<meta name="description" content="Open science materials: de-identified data, analysis code, study materials, and outputs for a study of novel word learning from a socially contingent NAO robot in autistic and non-autistic children.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #555;
+    --rule: #1a1a1a;
+    --light-rule: #d9d9d9;
+    --link: #0b5394;
+    --bg: #ffffff;
+    --accent-bg: #f6f7f8;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+  h1, h2, h3 { font-size: 15px; line-height: 1.6; margin: 0; }
+  h1 { font-weight: 700; }
+  h2 { font-weight: 700; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--light-rule); }
+  h3 { font-weight: 600; margin-top: 1.5rem; }
+  p { margin: 0.75rem 0; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .subtitle { font-style: italic; color: var(--muted); margin-top: 0.25rem; }
+  .authors { margin-top: 1rem; }
+  .affil { font-style: italic; color: var(--muted); }
+  nav.toc {
+    margin-top: 1.5rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--accent-bg);
+    border-radius: 6px;
+  }
+  nav.toc span { font-weight: 600; }
+  nav.toc a { margin-right: 1rem; white-space: nowrap; }
+  .btn-row { margin: 1.25rem 0 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .btn {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--link);
+    border-radius: 6px;
+    color: var(--link);
+    font-weight: 600;
+  }
+  .btn.primary { background: var(--link); color: #fff; }
+  .btn:hover { text-decoration: none; opacity: 0.85; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+    font-size: 15px;
+  }
+  caption { text-align: left; padding-bottom: 0.5rem; }
+  caption .tnum { font-weight: 700; display: block; }
+  caption .ttitle { font-style: italic; display: block; }
+  thead th {
+    text-align: left;
+    font-weight: 600;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.45rem 0.75rem 0.45rem 0;
+    background: transparent;
+  }
+  tbody td {
+    padding: 0.45rem 0.75rem 0.45rem 0;
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: 1px solid var(--rule); }
+  .note { font-size: 15px; color: var(--muted); }
+  .note em { font-style: italic; }
+  code {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 15px;
+    background: var(--accent-bg);
+    padding: 0.05rem 0.3rem;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--accent-bg);
+    padding: 0.9rem 1.1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; padding: 0; }
+  ul { padding-left: 1.3rem; margin: 0.75rem 0; }
+  li { margin: 0.25rem 0; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--light-rule);
+    color: var(--muted);
+    font-style: italic;
+  }
+  @media (max-width: 600px) {
+    main { padding: 2rem 1rem 4rem; }
+    .table-wrap { overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Novel Word Learning from Social Robots by Autistic and Non-Autistic Children</h1>
+  <p class="subtitle">Open science repository: de-identified data, analysis code, study materials, and outputs</p>
+  <p class="authors">Kristyn Sommer<span class="affil"><sup>1</sup></span>, Sarah Russell, and Jessica Paynter<span class="affil"><sup>1</sup></span><br>
+  <span class="affil"><sup>1</sup> School of Applied Psychology, Griffith University</span></p>
+
+  <div class="btn-row">
+    <a class="btn primary" href="https://github.com/drkristynsommer/social-robot-word-learning/archive/refs/heads/main.zip">Download everything (.zip, ~37 MB)</a>
+    <a class="btn" href="https://github.com/drkristynsommer/social-robot-word-learning">Browse the repository</a>
+    <a class="btn" href="Autistic-Child-Robot-Word-Learning_Preprint.pdf">Preprint (PDF)</a>
+  </div>
+
+  <nav class="toc">
+    <span>On this page:</span>
+    <a href="#overview">Overview</a>
+    <a href="#whats-here">What's here</a>
+    <a href="#data">Data</a>
+    <a href="#code">Code &amp; reproducing</a>
+    <a href="#materials">Materials</a>
+    <a href="#figures">Figures</a>
+    <a href="#citation">Citation</a>
+    <a href="#licensing">Licensing</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<section id="overview">
+  <h2>Overview</h2>
+  <p>Children learned novel object labels from a video presentation that either did or did not include a socially contingent robot (NAO). Word-learning accuracy was measured with a 12-trial forced-choice test, and engagement was coded from video across multiple behavioural channels. The autistic sample was characterised using standardised diagnostic and developmental measures (ADOS-2, MSEL, Vineland-3), which were used for sample description rather than as eligibility criteria.</p>
+  <p>The study was preregistered on the Open Science Framework prior to data collection: <a href="https://osf.io/hg859/">osf.io/hg859</a>. Departures from the preregistered protocol are documented in the <a href="preregistration/deviation_log.md">deviation log</a>.</p>
+  <p>This repository is the canonical public archive of the project's open science materials. It exists to support transparency and computational reproducibility of the analyses reported in the manuscript.</p>
+</section>
+
+<section id="whats-here">
+  <h2>What's here</h2>
+  <div class="table-wrap">
+  <table>
+    <caption>
+      <span class="tnum">Table 1</span>
+      <span class="ttitle">Repository contents</span>
+    </caption>
+    <thead>
+      <tr><th>Folder / file</th><th>Contents</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/data">data/</a></td><td>De-identified datasets, data dictionary, MD5 checksums</td></tr>
+      <tr><td><a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/code">code/</a></td><td>Analysis notebook (.Rmd), revision scripts, power analysis, de-identification script</td></tr>
+      <tr><td><a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/materials">materials/</a></td><td>Stimuli, robot scripts, coding manuals and instruments, consent and recruitment templates</td></tr>
+      <tr><td><a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/outputs">outputs/</a></td><td>Rendered analysis notebook (HTML) and manuscript figures</td></tr>
+      <tr><td><a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/preregistration">preregistration/</a></td><td>Preregistration link and deviation log</td></tr>
+      <tr><td><a href="Autistic-Child-Robot-Word-Learning_Preprint.pdf">Preprint (PDF)</a></td><td>Manuscript preprint</td></tr>
+      <tr><td><a href="LICENSE.md">LICENSE.md</a></td><td>MIT (code), CC-BY-4.0 (data and materials)</td></tr>
+      <tr><td><a href="CITATION.cff">CITATION.cff</a></td><td>Citation metadata for this deposit</td></tr>
+      <tr><td><a href="ai_use_statement.md">ai_use_statement.md</a></td><td>Generative-AI transparency note (matches the manuscript declaration)</td></tr>
+      <tr><td><a href="computational_environment.md">computational_environment.md</a></td><td>R version and package versions</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="data">
+  <h2>Data</h2>
+  <p>All shareable datasets live in <a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/data/deidentified">data/deidentified/</a>. Every participant ID in this deposit (datasets, notebook output, and figures) is a re-coded public ID that cannot be linked to the identifiers used during data collection. The re-coding is performed by <a href="code/deidentify_release.R">deidentify_release.R</a>; the mapping is held securely by the authors and is not deposited.</p>
+  <h3>Key files</h3>
+  <ul>
+    <li><a href="data/deidentified/analysis_main_deidentified.csv" download>analysis_main_deidentified.csv</a>: the main analysis dataset (one row per participant)</li>
+    <li><a href="data/deidentified/test_trials_long.csv" download>test_trials_long.csv</a>: trial-level word-learning test data</li>
+    <li><a href="data/deidentified/engagement_cleaned_intervals.csv" download>engagement_cleaned_intervals.csv</a>: interval-level engagement coding</li>
+    <li><a href="data/data_dictionary.xlsx" download>data_dictionary.xlsx</a>: variable definitions, pair with every dataset</li>
+    <li><a href="data/checksums.md">checksums.md</a>: MD5 checksums for every released dataset</li>
+  </ul>
+  <p><strong>Data-access statement.</strong> The raw source data are not shared because they contain individual-level clinical and developmental scores on a small autistic sample, for which the combination of quasi-identifiers carries a real re-identification risk. Requests for access to the underlying data may be directed to the corresponding author and are subject to ethics approval and a data-sharing agreement.</p>
+</section>
+
+<section id="code">
+  <h2>Code and how to reproduce</h2>
+  <p>The analysis was conducted in R 4.5.3. Exact package versions are listed in <a href="computational_environment.md">computational_environment.md</a> and in the Session Info section of the rendered notebook.</p>
+  <div class="table-wrap">
+  <table>
+    <caption>
+      <span class="tnum">Table 2</span>
+      <span class="ttitle">Analysis code</span>
+    </caption>
+    <thead>
+      <tr><th>File</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><a href="code/Social_Robot_Word_Learning_Analysis.Rmd" download>Social_Robot_Word_Learning_Analysis.Rmd</a></td><td>Main analysis notebook, the primary reproducibility artifact. Knits to the HTML notebook in outputs/</td></tr>
+      <tr><td><a href="code/revision_recompute.R" download>revision_recompute.R</a></td><td>Revision re-analysis script</td></tr>
+      <tr><td><a href="code/revision_model_B.R" download>revision_model_B.R</a></td><td>Revision Model B script</td></tr>
+      <tr><td><a href="code/simr_power_robot_fixed.R" download>simr_power_robot_fixed.R</a></td><td>Power analysis (simr)</td></tr>
+      <tr><td><a href="code/deidentify_release.R" download>deidentify_release.R</a></td><td>Produces the de-identified datasets from the secure source files</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>What reproduces from the shared data.</strong> The word-learning and engagement analyses (notebook Sections 5 to 10) run from the de-identified datasets in <code>data/deidentified/</code>. Two parts require the secure source files and therefore do not re-run from the public deposit: the interrater-reliability computation (Section 3.4, raw coding workbooks) and the covariate screening on exact age and clinical scores (Section 7.1.5; the released main dataset carries banded age and banded clinical scores instead). The full analysis trail for those sections is visible in the <a href="outputs/Social_Robot_Word_Learning_Analysis.html">rendered notebook</a>.</p>
+  <h3>Quick start</h3>
+  <pre><code># Clone the repository
+git clone https://github.com/drkristynsommer/social-robot-word-learning.git
+
+# Open code/Social_Robot_Word_Learning_Analysis.Rmd in RStudio and knit,
+# or from R:
+rmarkdown::render("code/Social_Robot_Word_Learning_Analysis.Rmd")</code></pre>
+</section>
+
+<section id="materials">
+  <h2>Materials</h2>
+  <p>Everything needed to run a replication is in <a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/materials">materials/</a>. Named-person contact details and university-identifying text have been removed from these files for public release; investigator names remain in investigator lists, as on the published paper.</p>
+  <ul>
+    <li><a href="materials/Replication_Protocol.pdf">Replication Protocol</a> (also as <a href="materials/Replication_Protocol.docx" download>.docx</a>): step-by-step procedure for running the study</li>
+    <li><a href="materials/engagement_coding_manual.pdf">Engagement coding manual</a> (also as <a href="materials/engagement_coding_manual.docx" download>.docx</a>)</li>
+    <li>Robot scripts: <a href="materials/NAO%20Social%20Robot%20Interaction%20Script.docx" download>NAO Social Robot Interaction Script</a> and <a href="materials/NAO%20play%20activity%20script.docx" download>NAO play activity script</a></li>
+    <li><a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/materials/stimuli">Stimuli</a>: the 15-page storybook and the A and B picture-choice arrays. The picture arrays include NOUN novel objects (Horst &amp; Hout, 2016); cite and attribute NOUN accordingly</li>
+    <li>Coding and scoring instruments: coding templates, scoring sheet, scale outline, and checklist (browse the <a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/materials">materials folder</a>)</li>
+    <li>Recruitment and ethics templates: blank consent, recruitment letter, debrief letter, social story, centre director information sheet, ethics application form</li>
+  </ul>
+  <p class="note"><em>Note.</em> The Mullen Scales of Early Learning are copyrighted test content and are not redistributed; cite the published test instead. The novel-word audio is embedded in the eBook presentation; the storybook pages and robot scripts document the words and their referents. See <a href="materials/README.md">materials/README.md</a> for the full inventory.</p>
+</section>
+
+<section id="figures">
+  <h2>Figures and rendered analysis</h2>
+  <p>The full rendered analysis notebook, with every model, table, diagnostic, and a plain-language summary after each main result, is available as a single HTML file: <a href="outputs/Social_Robot_Word_Learning_Analysis.html">Social_Robot_Word_Learning_Analysis.html</a>.</p>
+  <p>All manuscript figures are in <a href="https://github.com/drkristynsommer/social-robot-word-learning/tree/main/outputs/figures">outputs/figures/</a> as PNG and PDF, numbered as in the manuscript (Figure 1a/1b participant flow through Figure 10 engagement by group and channel).</p>
+</section>
+
+<section id="citation">
+  <h2>Citation</h2>
+  <p>If you use these materials, data, or code, please cite the associated manuscript and this deposit. Machine-readable metadata is in <a href="CITATION.cff">CITATION.cff</a>.</p>
+  <pre><code>Sommer, K., Russell, S., &amp; Paynter, J. (2026). Novel word learning from
+social robots by autistic and non-autistic children [Data, code, and
+materials]. GitHub.
+https://github.com/drkristynsommer/social-robot-word-learning</code></pre>
+</section>
+
+<section id="licensing">
+  <h2>Licensing, ethics, and AI use</h2>
+  <p><strong>Licensing.</strong> Analysis code is released under the MIT License. Data, materials, and documentation are released under CC-BY-4.0. See <a href="LICENSE.md">LICENSE.md</a> for the full terms and the carve-outs (for example, the NOUN stimulus images and copyrighted test content).</p>
+  <p><strong>Ethics.</strong> The study was approved by the relevant institutional human research ethics committee. Approval reference numbers are reported in the manuscript.</p>
+  <p><strong>Use of generative AI.</strong> See <a href="ai_use_statement.md">ai_use_statement.md</a> for the transparency note describing the use of generative AI tools in the preparation of the code and manuscript. This note matches the declaration in the manuscript.</p>
+</section>
+
+<section id="contact">
+  <h2>Contact</h2>
+  <p>Corresponding author: Dr Kristyn Sommer, School of Applied Psychology, Griffith University (<a href="mailto:k.sommer@griffith.edu.au">k.sommer@griffith.edu.au</a>).</p>
+  <p>Found an error, or something unclear? Please open an <a href="https://github.com/drkristynsommer/social-robot-word-learning/issues">issue on GitHub</a> or email the corresponding author. These materials are maintained, and corrections are welcome.</p>
+</section>
+
+<footer>
+  <p>This repository was previously deposited on the Open Science Framework; GitHub is now the canonical host. Deposit date: 11 August 2026.</p>
+</footer>
+
+</main>
+</body>
+</html>

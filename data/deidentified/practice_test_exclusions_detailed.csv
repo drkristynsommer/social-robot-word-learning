@@ -1,0 +1,57 @@
+pid,reason_type,reason,practice_trial_1,practice_trial_2,n_practice_valid,n_practice_correct,n_test_valid,n_test_correct,acc_test
+149,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+149,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+114,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+114,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+105,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+105,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+204,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+204,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+211,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+211,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+196,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+196,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+186,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+186,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+118,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+118,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+175,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+175,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+130,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+130,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+128,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+128,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+164,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+164,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+123,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+123,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+178,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+178,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+212,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+212,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+169,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+169,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+121,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+121,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+104,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+104,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+113,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+113,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+209,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",0,0,2,0,NA,NA,NA
+158,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",0,0,2,0,NA,NA,NA
+124,test_min_violation,Test trials attempted 1 < required 6,NA,NA,NA,NA,1,0,0
+101,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+101,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+140,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+140,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+141,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+141,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+135,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+135,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+108,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+108,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+185,test_min_violation,Test trials attempted 3 < required 6,NA,NA,NA,NA,3,1,0.3333333333333333
+139,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+139,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA
+155,test_min_violation,Test trials attempted 0 < required 6,NA,NA,NA,NA,0,0,NA
+155,practice_no_success,"No successful practice trial (e.g., 0+0, 0+NA, or NA+NA)",NA,NA,0,0,NA,NA,NA

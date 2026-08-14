@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use these materials, data, or code, please cite the associated manuscript and this deposit."
+title: "Novel Word Learning from Social Robots by Autistic and Non-Autistic Children"
+abstract: >-
+  Materials, de-identified data, and analysis code supporting a study of novel
+  word learning from a socially contingent robot (NAO) in autistic and
+  non-autistic children.
+type: dataset
+authors:
+  - family-names: Sommer
+    given-names: Kristyn
+    affiliation: "School of Applied Psychology, Griffith University"
+  - family-names: Russell
+    given-names: Sarah
+  - family-names: Paynter
+    given-names: Jessica
+    affiliation: "School of Applied Psychology, Griffith University"
+keywords:
+  - word learning
+  - social robots
+  - autism
+  - child development
+  - open data
+license: CC-BY-4.0
+# doi: "10.17605/OSF.IO/XXXXX"   # add the OSF DOI once available
+date-released: 2026-08-11
