@@ -22,6 +22,13 @@ The study was preregistered on the Open Science Framework prior to data
 collection: https://osf.io/hg859/. Departures from the preregistered protocol
 are documented in `preregistration/deviation_log.md`.
 
+## Preprint
+
+The manuscript preprint is posted on PsyArXiv (OSF Preprints):
+https://osf.io/preprints/psyarxiv/nf6mh (doi:10.31234/osf.io/nf6mh). The
+preprint is not duplicated in this repository; the OSF record is the
+canonical version.
+
 ## Repository structure
 
 ```
